@@ -8,7 +8,7 @@ dotenv.config();
 
 const app = express();
 // Cloud Run sets the PORT env var, usually to 8080
-const port = process.env.PORT || '8080';
+const port = parseInt(process.env.PORT || '8080', 10);
 
 console.log(`[Backend] Starting server on port ${port}...`);
 
@@ -92,8 +92,4 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', database: 'connect
 // Root route
 app.get('/', (req, res) => {
   res.send('Workforce Backend API is running.');
-});
-
-app.listen(port, '0.0.0.0', () => {
-  console.log(`[Backend] Listening on http://0.0.0.0:${port}`);
 });
