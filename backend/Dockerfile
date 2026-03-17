@@ -2,7 +2,7 @@
 FROM node:20-slim
 
 # Install openssl for Prisma
-RUN apt-get update -y && apt-get install -y openssl
+RUN apt-get update -y && apt-get install -y openssl libssl-dev
 
 # Set working directory
 WORKDIR /app
@@ -31,6 +31,7 @@ EXPOSE 8080
 
 # Set environment variables
 ENV PORT=8080
+ENV NODE_ENV=production
 
 # Start the application
-CMD ["npm", "start"]
+CMD ["node", "dist/index.js"]

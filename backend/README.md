@@ -24,23 +24,64 @@ This is a standalone backend for the Workforce Portal, prepared for deployment t
 
 ## Cloud Run Deployment
 
-### 1. Build and Push Image to Google Artifact Registry
+### 1. Pre-requisites
 
-Replace `[PROJECT_ID]`, `[REGION]`, and `[REPOSITORY]` with your Google Cloud details.
+Ensure the Artifact Registry API is enabled in your project:
+```bash
+gcloud services enable artifactregistry.googleapis.com
+```
+
+### 2. Authenticate and Configure Docker
+
+Replace `[REGION]` with your region (e.g., `us-west1`).
 
 ```bash
 # Authenticate with Google Cloud
 gcloud auth login
 
-# Configure Docker for Artifact Registry
+# Configure Docker for your specific region's registry
 gcloud auth configure-docker [REGION]-docker.pkg.dev
+```
 
+### 3. Build and Push Image
+
+Replace `[PROJECT_ID]`, `[REGION]`, and `[REPOSITORY]` with your Google Cloud details.
+
+```bash
 # Build the image
 docker build -t [REGION]-docker.pkg.dev/[PROJECT_ID]/[REPOSITORY]/workforce-backend:latest .
 
 # Push the image
 docker push [REGION]-docker.pkg.dev/[PROJECT_ID]/[REPOSITORY]/workforce-backend:latest
 ```
+
+## Deployment Alternatives (Recommended)
+
+### Method A: Google Cloud Builds (Most Reliable)
+
+If `docker push` continues to fail with "connection refused", use **Cloud Builds**. This method sends your source code to Google Cloud and builds/pushes the image entirely on Google's infrastructure, bypassing local network issues.
+
+1.  **Enable Cloud Build API:**
+    ```bash
+    gcloud services enable cloudbuild.googleapis.com
+    ```
+
+2.  **Submit the Build:**
+    Run this command from inside the `backend` folder:
+    ```bash
+    gcloud builds submit --tag us-west1-docker.pkg.dev/workforce-portal-472121/workforce-portal-repository/workforce-backend:latest .
+    ```
+
+### Method B: Troubleshooting Docker Push
+
+If you must use `docker push`:
+
+1.  **Check Project Quotas:** Ensure your billing is active and you haven't hit Artifact Registry quotas.
+2.  **Test Connectivity:** Run `curl -v https://us-west1-docker.pkg.dev/v2/` to see if you can reach the endpoint.
+3.  **Docker Login (Direct):**
+    ```bash
+    gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-west1-docker.pkg.dev
+    ```
 
 ### 2. Deploy to Cloud Run
 

@@ -7,9 +7,21 @@ import { PrismaClient } from '@prisma/client';
 dotenv.config();
 
 const app = express();
-const port = parseInt(process.env.PORT || '3000', 10);
+const port = parseInt(process.env.PORT || '8080', 10);
+
+console.log(`[Backend] Initializing with PORT=${port}`);
+
 // Prisma 7 uses prisma.config.ts for connection management
 const prisma = new PrismaClient();
+
+// Test connection on startup (non-blocking)
+prisma.$connect()
+  .then(() => console.log('[Backend] Successfully connected to database'))
+  .catch((err) => {
+    console.error('[Backend] Database connection failed on startup:');
+    console.error(err);
+    // We don't exit here to allow Cloud Run health checks to pass
+  });
 
 app.use(cors());
 app.use(express.json());
