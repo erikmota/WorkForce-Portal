@@ -87,9 +87,9 @@ app.get('/api/audit-logs', async (req, res) => {
 });
 
 // Health check
-app.get('/api/health', (req, res) => res.json({ status: 'ok', database: 'connected' }));
+app.get('/api/health', (req, res) => res.json({ status: 'ok', message: 'Server is running' }));
 
 // Root route
 app.get('/', (req, res) => {
-  res.send('Workforce Backend API is running.');
+  res.status(200).send('Workforce Backend API is active.');
 });
