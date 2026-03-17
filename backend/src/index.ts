@@ -1,4 +1,4 @@
-// VERSION 1.2 - PRISMA 7 COMPATIBILITY FIX
+// VERSION 1.3 - CLOUD RUN RESILIENCE FIX
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -7,20 +7,23 @@ import { PrismaClient } from '@prisma/client';
 dotenv.config();
 
 const app = express();
-const port = parseInt(process.env.PORT || '8080', 10);
+// Cloud Run sets the PORT env var, usually to 8080
+const port = process.env.PORT || '8080';
 
-console.log(`[Backend] Initializing with PORT=${port}`);
+console.log(`[Backend] Starting server on port ${port}...`);
 
-// Prisma 7 uses prisma.config.ts for connection management
 const prisma = new PrismaClient();
 
-// Test connection on startup (non-blocking)
+// IMPORTANT: Start listening BEFORE doing heavy tasks like DB connection
+app.listen(port, '0.0.0.0', () => {
+  console.log(`[Backend] Server is UP and listening on 0.0.0.0:${port}`);
+});
+
+// Connect to DB in the background
 prisma.$connect()
-  .then(() => console.log('[Backend] Successfully connected to database'))
+  .then(() => console.log('[Backend] Database connected successfully'))
   .catch((err) => {
-    console.error('[Backend] Database connection failed on startup:');
-    console.error(err);
-    // We don't exit here to allow Cloud Run health checks to pass
+    console.error('[Backend] Database connection error (server is still running):', err.message);
   });
 
 app.use(cors());
