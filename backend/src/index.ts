@@ -1,3 +1,4 @@
+// VERSION 1.2 - PRISMA 7 COMPATIBILITY FIX
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -7,13 +8,8 @@ dotenv.config();
 
 const app = express();
 const port = parseInt(process.env.PORT || '3000', 10);
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
-});
+// Prisma 7 uses prisma.config.ts for connection management
+const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(express.json());
