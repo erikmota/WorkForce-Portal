@@ -1,0 +1,259 @@
+<div class="px-4 sm:px-0 space-y-12">
+  <!-- Registration/Edit Form -->
+  <div>
+    <h2 class="text-2xl font-bold tracking-tight text-gray-900">{{ title() }}</h2>
+    <div class="mt-4 p-6 bg-white shadow-lg rounded-lg">
+      <form [formGroup]="companyForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <!-- Company Name -->
+            <div class="md:col-span-2">
+                <label for="name" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.companyName') }}</label>
+                <input type="text" id="name" formControlName="name" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                @if (companyForm.get('name')?.invalid && companyForm.get('name')?.touched) {
+                    <p class="mt-1 text-sm text-red-600">{{ t()('manageCompanies.companyNameError') }}</p>
+                }
+            </div>
+
+            <!-- Contact Name -->
+            <div>
+                <label for="contactName" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.contactName') }}</label>
+                <input type="text" id="contactName" formControlName="contactName" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                 @if (companyForm.get('contactName')?.invalid && companyForm.get('contactName')?.touched) {
+                    <p class="mt-1 text-sm text-red-600">{{ t()('manageCompanies.contactNameError') }}</p>
+                }
+            </div>
+            
+            <!-- Email -->
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.email') }}</label>
+                <input type="email" id="email" formControlName="email" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                 @if (companyForm.get('email')?.invalid && companyForm.get('email')?.touched) {
+                    <p class="mt-1 text-sm text-red-600">{{ t()('manageCompanies.emailError') }}</p>
+                }
+            </div>
+
+            <!-- Phone 1 -->
+            <div>
+                <label for="phone1" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.phone1') }}</label>
+                <input type="tel" id="phone1" formControlName="phone1" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                @if (companyForm.get('phone1')?.invalid && companyForm.get('phone1')?.touched) {
+                    <p class="mt-1 text-sm text-red-600">{{ t()('manageCompanies.phone1Error') }}</p>
+                }
+            </div>
+            
+            <!-- Phone 2 -->
+            <div>
+                <label for="phone2" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.phone2') }}</label>
+                <input type="tel" id="phone2" formControlName="phone2" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+            </div>
+            
+            <!-- Address -->
+            <div class="md:col-span-2">
+                <label for="address" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.address') }}</label>
+                <input type="text" id="address" formControlName="address" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+            </div>
+
+            <!-- City -->
+            <div>
+                <label for="city" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.city') }}</label>
+                <input type="text" id="city" formControlName="city" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+            </div>
+            
+            <!-- State -->
+            <div>
+                <label for="state" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.state') }}</label>
+                <input type="text" id="state" formControlName="state" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+            </div>
+            
+            <!-- Contract Type -->
+            <div>
+                <label for="contractType" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.contractType') }}</label>
+                <select id="contractType" formControlName="contractType" class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                    <option [value]="null" disabled>{{ t()('manageCompanies.selectType') }}</option>
+                    <option value="monthly">{{ t()('manageCompanies.types.monthly') }}</option>
+                    <option value="anual">{{ t()('manageCompanies.types.annual') }}</option>
+                    <option value="other">{{ t()('manageCompanies.types.other') }}</option>
+                </select>
+                @if (companyForm.get('contractType')?.invalid && companyForm.get('contractType')?.touched) {
+                    <p class="mt-1 text-sm text-red-600">{{ t()('manageCompanies.contractTypeError') }}</p>
+                }
+            </div>
+            
+            <!-- Contract Value -->
+            <div>
+                <label for="contractValue" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.contractValue') }}</label>
+                <input type="number" id="contractValue" formControlName="contractValue" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" placeholder="e.g., 5000">
+                @if (companyForm.get('contractValue')?.invalid && companyForm.get('contractValue')?.touched) {
+                    <p class="mt-1 text-sm text-red-600">{{ t()('manageCompanies.contractValueError') }}</p>
+                }
+            </div>
+            
+            <!-- Max Monthly Hires -->
+            <div class="md:col-span-2">
+                <label for="maxMonthlyHiresPerUser" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.maxMonthlyHires') }}</label>
+                <input type="number" id="maxMonthlyHiresPerUser" formControlName="maxMonthlyHiresPerUser" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" min="0" placeholder="0">
+                <p class="mt-1 text-xs text-gray-500">{{ t()('manageCompanies.maxMonthlyHiresHelp') }}</p>
+            </div>
+
+            <!-- Default Start Time -->
+            <div>
+                <label for="defaultStartTime" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.defaultStartTime') }}</label>
+                <input type="time" id="defaultStartTime" formControlName="defaultStartTime" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+            </div>
+
+            <!-- Default End Time -->
+            <div>
+                <label for="defaultEndTime" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.defaultEndTime') }}</label>
+                <input type="time" id="defaultEndTime" formControlName="defaultEndTime" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+            </div>
+
+            <!-- Banner Image -->
+            <div class="md:col-span-2">
+                <label for="bannerImageUrl" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.bannerImage') }}</label>
+                <div class="mt-2 flex items-center space-x-4">
+                    <input type="url" id="bannerImageUrl" formControlName="bannerImageUrl" [placeholder]="t()('manageCompanies.pasteUrl')" class="flex-grow block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                    <span class="text-sm text-gray-500">{{ t()('manageCompanies.or') }}</span>
+                    <label for="banner-upload-admin" class="cursor-pointer px-4 py-2 text-sm rounded-md border border-gray-300 bg-white font-semibold text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap">
+                        <span>{{ t()('manageCompanies.uploadImage') }}</span>
+                        <input id="banner-upload-admin" name="banner-upload-admin" type="file" class="sr-only" (change)="onFileSelected($event)" accept="image/png, image/jpeg, image/gif, image/webp">
+                    </label>
+                </div>
+                @if (companyForm.get('bannerImageUrl')?.value) {
+                  <div class="mt-4">
+                    <p class="text-sm font-medium text-gray-600 mb-2">{{ t()('manageCompanies.imagePreview') }}</p>
+                    <div class="w-full aspect-[16/5] bg-gray-100 rounded-md overflow-hidden border">
+                       <img [src]="companyForm.get('bannerImageUrl')?.value" alt="Banner preview" class="w-full h-full object-cover">
+                    </div>
+                  </div>
+                }
+            </div>
+        </div>
+        
+        <div class="flex justify-end space-x-2 pt-4 border-t border-gray-200">
+           @if (editingCompany()) {
+            <button type="button" (click)="cancelEdit()" class="px-6 py-2 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-colors">
+              {{ t()('manageCompanies.buttons.cancel') }}
+            </button>
+          }
+          <button type="submit" [disabled]="companyForm.invalid" class="px-6 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300">
+            @if(editingCompany()) {
+              <span>{{ t()('manageCompanies.buttons.update') }}</span>
+            } @else {
+              <span>{{ t()('manageCompanies.buttons.create') }}</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Companies List -->
+  <div>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold tracking-tight text-gray-900">{{ t()('manageCompanies.existingCompanies') }}</h2>
+      <button (click)="isFilterPanelVisible.set(!isFilterPanelVisible())" type="button" class="inline-flex items-center gap-x-2 rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.59L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clip-rule="evenodd" />
+        </svg>
+        @if (isFilterPanelVisible()) {
+          <span>{{ t()('manageCompanies.filters.hide') }}</span>
+        } @else {
+          <span>{{ t()('manageCompanies.filters.show') }}</span>
+        }
+      </button>
+    </div>
+
+    <!-- Filter Panel -->
+    @if (isFilterPanelVisible()) {
+      <div class="mb-4 p-4 bg-gray-50 shadow rounded-lg border border-gray-200">
+        <form [formGroup]="filterForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+          <div>
+            <label for="filter-company-name" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.filters.name') }}</label>
+            <input type="text" id="filter-company-name" formControlName="name" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+          </div>
+          <div>
+            <label for="filter-contact" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.filters.contact') }}</label>
+            <input type="text" id="filter-contact" formControlName="contact" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+          </div>
+          <div>
+            <label for="filter-email" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.filters.email') }}</label>
+            <input type="text" id="filter-email" formControlName="email" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+          </div>
+          <div>
+            <label for="filter-location" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.filters.location') }}</label>
+            <input type="text" id="filter-location" formControlName="location" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+          </div>
+          <div>
+            <label for="filter-contract-type" class="block text-sm font-medium text-gray-700">{{ t()('manageCompanies.filters.contractType') }}</label>
+            <select id="filter-contract-type" formControlName="contractType" class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+              <option value="all">{{ t()('manageCompanies.filters.allTypes') }}</option>
+              <option value="monthly">{{ t()('manageCompanies.types.monthly') }}</option>
+              <option value="anual">{{ t()('manageCompanies.types.annual') }}</option>
+              <option value="other">{{ t()('manageCompanies.types.other') }}</option>
+            </select>
+          </div>
+          <div class="self-end">
+            <button (click)="resetFilters()" type="button" class="w-full inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">{{ t()('manageCompanies.filters.reset') }}</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    @if (visibleCompanies().length > 0) {
+      <div class="mt-4 bg-white shadow-lg rounded-lg overflow-hidden">
+        <ul role="list" class="divide-y divide-gray-200">
+          @for (company of visibleCompanies(); track company.id) {
+            <li class="px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between hover:bg-gray-50">
+              <div class="flex-grow">
+                <p class="font-semibold text-gray-800">{{ company.name }}</p>
+                <div class="mt-2 text-xs text-gray-500 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1">
+                  @if(company.contactName) {
+                    <p><strong>{{ t()('manageCompanies.contact') }}</strong> {{ company.contactName }}</p>
+                  }
+                  @if(company.email) {
+                    <p><strong>{{ t()('manageCompanies.emailLink') }}</strong> <a [href]="'mailto:' + company.email" class="text-indigo-600 hover:underline">{{ company.email }}</a></p>
+                  }
+                  @if(company.phone1) {
+                    <p><strong>{{ t()('manageCompanies.phone') }}</strong> {{ company.phone1 }}</p>
+                  }
+                   @if(company.city && company.state) {
+                    <p><strong>{{ t()('manageCompanies.location') }}</strong> {{ company.city }}, {{ company.state }}</p>
+                  }
+                  @if(company.contractType) {
+                    <p class="capitalize"><strong>{{ t()('manageCompanies.contract') }}</strong> {{ company.contractType }}</p>
+                  }
+                  @if(company.contractValue != null) {
+                    <p><strong>{{ t()('manageCompanies.value') }}</strong> {{ company.contractValue | currency }}</p>
+                  }
+                  @if(company.maxMonthlyHiresPerUser) {
+                    <p><strong>{{ t()('manageCompanies.maxMonthlyHires') }}:</strong> {{ company.maxMonthlyHiresPerUser }}</p>
+                  }
+                </div>
+              </div>
+              <div class="mt-4 sm:mt-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 self-start sm:self-auto flex-shrink-0">
+                <button (click)="editCompany(company)" class="px-3 py-1 text-sm rounded-md text-indigo-600 bg-indigo-100 hover:bg-indigo-200 font-semibold transition-colors">
+                  {{ t()('manageCompanies.editButton') }}
+                </button>
+                <button (click)="deleteCompany(company)" class="px-3 py-1 text-sm rounded-md text-white bg-red-600 hover:bg-red-700 font-semibold transition-colors">
+                    {{ t()('manageCompanies.deleteButton') }}
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      </div>
+    } @else {
+      <div class="mt-4 p-6 bg-white shadow-lg rounded-lg">
+        <p class="text-gray-600 text-center">{{ t()('manageCompanies.noCompaniesFound') }}</p>
+      </div>
+    }
+  </div>
+</div>
+
+@if (companyToDelete(); as company) {
+  <app-confirmation-modal
+    [message]="t()('confirmationModal.messages.removeCompany', { name: company.name })"
+    (confirm)="confirmDeleteCompany()"
+    (cancel)="companyToDelete.set(null)">
+  </app-confirmation-modal>
+}

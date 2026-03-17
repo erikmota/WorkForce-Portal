@@ -1,11 +1,7 @@
-<div align="center">
+# Workforce Portal - Frontend
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+This Angular application serves as the frontend for the Workforce Portal.
 
-  <h1>Built with AI Studio</h2>
+## Architecture
 
-  <p>The fastest path from prompt to production with Gemini.</p>
-
-  <a href="https://aistudio.google.com/apps">Start building</a>
-
-</div>
+The application is built with Angular (v20+) using standalone components and signals for state management. It is designed to communicate with a backend server via a RESTful API to fetch and manage all data, including users, companies, activities, and registrations.

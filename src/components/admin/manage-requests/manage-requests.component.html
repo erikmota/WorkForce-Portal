@@ -1,0 +1,237 @@
+<div class="px-4 sm:px-0">
+  <h2 class="text-2xl font-bold tracking-tight text-gray-900">{{ t()('manageRequests.title') }} ({{ getGroupKeys().length }})</h2>
+  
+  <div class="mt-4 border-b border-gray-200">
+    <!-- Desktop Tabs -->
+    <div class="hidden sm:block">
+      <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+        <button (click)="setView('pending')" 
+                [class.border-indigo-500]="requestStatusView() === 'pending'" 
+                [class.text-indigo-600]="requestStatusView() === 'pending'" 
+                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+          {{ t()('manageRequests.tabs.pending') }}
+        </button>
+        <button (click)="setView('approved')" 
+                [class.border-indigo-500]="requestStatusView() === 'approved'" 
+                [class.text-indigo-600]="requestStatusView() === 'approved'" 
+                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+          {{ t()('manageRequests.tabs.approved') }}
+        </button>
+        <button (click)="setView('not-selected')" 
+                [class.border-indigo-500]="requestStatusView() === 'not-selected'" 
+                [class.text-indigo-600]="requestStatusView() === 'not-selected'" 
+                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+          {{ t()('manageRequests.tabs.notSelected') }}
+        </button>
+      </nav>
+    </div>
+    <!-- Mobile Dropdown -->
+    <div class="sm:hidden py-2">
+      <label for="request-tabs" class="sr-only">Select a tab</label>
+      <select id="request-tabs" name="request-tabs" class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-5" [value]="requestStatusView()" (change)="setView($any($event.target).value)">
+        <option value="pending">{{ t()('manageRequests.tabs.pending') }}</option>
+        <option value="approved">{{ t()('manageRequests.tabs.approved') }}</option>
+        <option value="not-selected">{{ t()('manageRequests.tabs.notSelected') }}</option>
+      </select>
+    </div>
+  </div>
+
+  @if (getGroupKeys().length > 0) {
+    <div class="mt-4 space-y-8">
+      @for (slotId of getGroupKeys(); track slotId) {
+        @let group = groupedRegistrations()[slotId];
+        <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+          <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-x-2 flex-wrap">
+                <button type="button" (click)="onActivityClick(group)" class="text-left font-semibold text-indigo-600 hover:text-indigo-800 hover:underline focus:outline-none">
+                  {{ group.jobTitle }}
+                </button>
+                <span class="text-base font-normal text-gray-500">
+                  {{ t()('manageRequests.candidateCount', { count: group.registrations.length }) }}
+                </span>
+                @if (group.isGroup) {
+                  <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">{{ t()('registerActivity.isGrouped') }}</span>
+                }
+              </h3>
+              <p class="text-base font-medium text-indigo-600">{{ group.companyName }}</p>
+              @if (group.isGroup && group.endTime) {
+                <p class="text-sm text-gray-500 mt-1">
+                  {{ t()('registerActivity.dateRange', { start: (group.startTime | date:'mediumDate':undefined:translationService.currentLanguage()), end: (group.endTime | date:'mediumDate':undefined:translationService.currentLanguage()) }) }}
+                </p>
+              } @else {
+                <p class="text-sm text-gray-500 mt-1">{{ group.startTime | date:'mediumDate':undefined:translationService.currentLanguage() }} - {{ group.startTime | date:'shortTime':undefined:translationService.currentLanguage() }}</p>
+              }
+
+              @if (group.capacityDetails) {
+                <div class="mt-2 text-sm text-gray-600">
+                  <strong>{{ t()('jobDetailsModal.capacity') }}:</strong>
+                  <span>{{ group.capacityDetails.totalCapacity - group.capacityDetails.totalApproved }} / {{ group.capacityDetails.totalCapacity }}</span>
+                  @if(group.capacityDetails.mode === 'skill' && group.capacityDetails.skills) {
+                    <ul class="text-xs list-disc pl-5 mt-1 space-y-0.5">
+                      @for(item of group.capacityDetails.skills; track item.name) {
+                        <li>{{ item.name }}: {{ item.capacity - item.approved }} / {{ item.capacity }}</li>
+                      }
+                    </ul>
+                  }
+                </div>
+              }
+            </div>
+             @if (requestStatusView() === 'pending' && group.registrations.length > 0 && geminiService.isConfigured()) {
+                <div>
+                  <button (click)="getAiSuggestion(group)" type="button" class="inline-flex items-center gap-x-2 rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                      <path fill-rule="evenodd" d="M10 2.5a.75.75 0 01 .75.75v3.5a.75.75 0 01-1.5 0V3.25A.75.75 0 01 10 2.5ZM5.625 5.625a.75.75 0 01 1.06 0l2.47 2.47a.75.75 0 11-1.06 1.06L5.625 6.685a.75.75 0 01 0-1.06Zm8.75 0a.75.75 0 01 0 1.06l-2.47 2.47a.75.75 0 11-1.06-1.06l2.47-2.47a.75.75 0 01 1.06 0ZM2.5 10a.75.75 0 01 .75-.75h3.5a.75.75 0 01 0 1.5h-3.5a.75.75 0 01-.75-.75Zm14.25 0a.75.75 0 01 .75-.75h3.5a.75.75 0 01 0 1.5h-3.5a.75.75 0 01-.75-.75Zm-8.75 4.375a.75.75 0 01 1.06 0l2.47-2.47a.75.75 0 01 1.06 1.06L6.685 15.435a.75.75 0 01-1.06 0l-.001-.001a.75.75 0 01 0-1.06Zm8.75 0a.75.75 0 01 0 1.06l-2.47 2.47a.75.75 0 11-1.06-1.06l2.47-2.47a.75.75 0 01 1.06 0ZM10 17.5a.75.75 0 01-.75-.75v-3.5a.75.75 0 01 1.5 0v3.5a.75.75 0 01-.75-.75Z" clip-rule="evenodd" />
+                    </svg>
+                    {{ t()('ai.suggestButton') }}
+                  </button>
+                </div>
+              }
+          </div>
+          <ul role="list" class="divide-y divide-gray-200">
+            @for (registration of group.registrations; track registration.id) {
+              <li class="px-6 py-4 flex flex-col sm:flex-row items-start justify-between space-y-4 sm:space-y-0 sm:space-x-4">
+                <div class="flex-grow">
+                  <div class="flex items-start space-x-3">
+                     @if (registration.user.profilePictureUrl) {
+                      <img class="w-10 h-10 rounded-full object-cover flex-shrink-0" [src]="registration.user.profilePictureUrl" [alt]="registration.user.name">
+                    } @else {
+                      <span class="inline-block h-10 w-10 overflow-hidden rounded-full bg-gray-200 flex-shrink-0">
+                        <svg class="h-full w-full text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M24 20.993V24H0v-2.997A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                      </span>
+                    }
+                    <div>
+                      <button (click)="openUserQuickView(registration.user)" type="button" class="font-medium text-gray-800 text-left hover:underline focus:outline-none">
+                        {{ registration.user.name }}
+                      </button>
+                      <p class="text-sm text-gray-500">{{ registration.user.username }}</p>
+                      @if (registration.user.skillsByCompany?.[registration.job.companyId]; as userSkills) {
+                        @if(userSkills.length > 0) {
+                          <div class="mt-2 flex flex-wrap gap-1">
+                            @for(skill of userSkills; track skill) {
+                              <span class="text-xs font-medium px-2 py-0.5 rounded-full"
+                                    [class.bg-indigo-100]="requestStatusView() === 'approved' ? skill === getRegisteredSkillForUser(registration) : (group.requiredSkills ?? []).includes(skill)"
+                                    [class.text-indigo-800]="requestStatusView() === 'approved' ? skill === getRegisteredSkillForUser(registration) : (group.requiredSkills ?? []).includes(skill)"
+                                    [class.font-semibold]="requestStatusView() === 'approved' ? skill === getRegisteredSkillForUser(registration) : (group.requiredSkills ?? []).includes(skill)"
+                                    [class.bg-gray-100]="requestStatusView() === 'approved' ? skill !== getRegisteredSkillForUser(registration) : !(group.requiredSkills ?? []).includes(skill)"
+                                    [class.text-gray-700]="requestStatusView() === 'approved' ? skill !== getRegisteredSkillForUser(registration) : !(group.requiredSkills ?? []).includes(skill)">
+                                {{ skill }}
+                              </span>
+                            }
+                          </div>
+                        }
+                      }
+                    </div>
+                  </div>
+
+                  @if (registration.needsTransportation) {
+                    <div class="mt-2 pl-2 border-l-2 border-gray-300">
+                      <p class="text-xs font-semibold text-gray-800 flex items-center">
+                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 mr-1 text-gray-500">
+                            <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v9a1 1 0 001 1h.5a.5.5 0 01.5.5v2a.5.5 0 00.5.5h1a.5.5 0 00.5-.5v-2a.5.5 0 01.5-.5H13.5a.5.5 0 01.5.5v2a.5.5 0 00.5.5h1a.5.5 0 00.5-.5v-2a.5.5 0 01.5-.5H17a1 1 0 001-1V4a1 1 0 00-1-1H3zm0 2h14v7H3V5zm2 9a1 1 0 100-2 1 1 0 000 2zm10 0a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                         </svg>
+                        {{ t()('portal.admin.filters.needsTransportation') }}
+                      </p>
+                      @if (registration.transportationNotes) {
+                        <p class="text-xs text-gray-700 italic mt-1 ml-2">"{{ registration.transportationNotes }}"</p>
+                      }
+                    </div>
+                  }
+                </div>
+                
+                @if (requestStatusView() === 'pending') {
+                  <div class="flex-shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto sm:max-w-xs">
+                    <input type="text" [placeholder]="t()('jobDetailsModal.commentPlaceholder')"
+                           [value]="comments()[registration.id] || ''"
+                           (input)="updateComment(registration.id, $any($event.target).value)"
+                           class="flex-grow block w-full rounded-md border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm text-xs">
+                    <div class="flex items-center justify-end sm:justify-start space-x-2">
+                        <button (click)="handleApprove(registration)" class="px-2 py-1 text-xs rounded-md text-white bg-green-600 hover:bg-green-700 font-semibold transition-colors">
+                            {{ t()('jobDetailsModal.approveButton') }}
+                        </button>
+                    </div>
+                  </div>
+                }
+                @if (requestStatusView() === 'approved' && registration.comment) {
+                  <div class="flex-shrink-0">
+                    <p class="text-sm italic text-gray-600 max-w-xs">"{{ t()(registration.comment) }}"</p>
+                  </div>
+                }
+                @if (requestStatusView() === 'not-selected' && registration.comment) {
+                  <div class="flex-shrink-0">
+                    <p class="text-sm italic text-red-600 max-w-xs">"{{ t()(registration.comment) }}"</p>
+                  </div>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="mt-8 text-center">
+      <div class="mx-auto h-12 w-12 text-gray-400">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h7.5M8.25 12h7.5m-7.5 5.25h7.5M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+        </svg>
+      </div>
+      <h3 class="mt-2 text-sm font-semibold text-gray-900">{{ t()('manageRequests.noRequests', { status: requestStatusView() }) }}</h3>
+      <p class="mt-1 text-sm text-gray-500">{{ t()('manageRequests.noRequestsMessage', { status: requestStatusView() }) }}</p>
+    </div>
+  }
+</div>
+
+@if (isUserQuickViewOpen() && selectedUserForQuickView()) {
+  <app-user-quick-view-modal
+    [user]="selectedUserForQuickView()!"
+    (close)="closeUserQuickView()">
+  </app-user-quick-view-modal>
+}
+
+@if (showSkillSelectionForApproval() && approvalCandidate(); as candidate) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center transition-opacity" (click)="cancelApprovalWithSkill()">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md m-4 p-6 sm:p-8 transform transition-transform" (click)="$event.stopPropagation()">
+      <h3 class="text-lg font-semibold leading-6 text-gray-900">{{ t()('confirmationModal.selectSkillTitle') }}</h3>
+      <div class="mt-2">
+        <p class="text-sm text-gray-600">{{ t()('confirmationModal.selectSkillMessage', { name: candidate.registration.user.name }) }}</p>
+      </div>
+      <fieldset class="mt-4">
+        <legend class="sr-only">Matching Skills</legend>
+        <div class="space-y-2">
+          @for (skill of candidate.matchingSkills; track skill) {
+            <label class="relative block cursor-pointer rounded-lg border bg-white px-4 py-3 shadow-sm focus:outline-none sm:flex sm:justify-between"
+                  [class.border-indigo-600]="skillForApproval() === skill"
+                  [class.border-gray-300]="skillForApproval() !== skill"
+                  [class.ring-2]="skillForApproval() === skill"
+                  [class.ring-indigo-600]="skillForApproval() === skill">
+              <input type="radio" name="skill-selection" [value]="skill" class="sr-only" (change)="skillForApproval.set(skill)" [checked]="skillForApproval() === skill">
+              <span class="flex items-center">
+                <span class="flex flex-col text-sm">
+                  <span class="font-medium text-gray-900">{{ skill }}</span>
+                </span>
+              </span>
+            </label>
+          }
+        </div>
+      </fieldset>
+      <div class="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+        <button (click)="cancelApprovalWithSkill()" type="button" class="w-full inline-flex justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:w-auto">
+          {{ t()('confirmationModal.buttons.cancel') }}
+        </button>
+        <button (click)="confirmApprovalWithSkill()" type="button" class="w-full inline-flex justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 sm:w-auto" [disabled]="!skillForApproval()">
+          {{ t()('confirmationModal.buttons.confirmApproval') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (isAiModalOpen() && selectedGroupForAi()) {
+  <app-ai-suggestion-modal
+    [group]="selectedGroupForAi()!"
+    (close)="closeAiModal()"
+    (apply)="applyAiSuggestion($event)">
+  </app-ai-suggestion-modal>
+}

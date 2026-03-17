@@ -1,0 +1,43 @@
+<div class="px-4 sm:px-0">
+  <h2 class="text-2xl font-bold tracking-tight text-gray-900">{{ t()('auditLog.title') }}</h2>
+
+  <div class="mt-8 flow-root">
+    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+      <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+        @if (filteredLogs().length > 0) {
+          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+            <table class="min-w-full divide-y divide-gray-300">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">{{ t()('auditLog.table.timestamp') }}</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{{ t()('auditLog.table.user') }}</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{{ t()('auditLog.table.field') }}</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{{ t()('auditLog.table.oldValue') }}</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{{ t()('auditLog.table.newValue') }}</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{{ t()('auditLog.table.changedBy') }}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 bg-white">
+                @for (log of filteredLogs(); track log.id) {
+                  <tr>
+                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">{{ log.timestamp | date:'short':undefined:translationService.currentLanguage() }}</td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ log.userName }}</td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ log.fieldName }}</td>
+                    <td class="px-3 py-4 text-sm text-gray-500 break-words max-w-xs">{{ log.oldValue }}</td>
+                    <td class="px-3 py-4 text-sm text-gray-500 break-words max-w-xs">{{ log.newValue }}</td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ log.changedByName }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="text-center py-12 bg-white shadow-lg rounded-lg">
+            <h3 class="mt-2 text-sm font-semibold text-gray-900">{{ t()('auditLog.noLogs') }}</h3>
+            <p class="mt-1 text-sm text-gray-500">{{ t()('auditLog.noLogsMessage') }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

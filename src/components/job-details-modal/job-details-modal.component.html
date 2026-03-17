@@ -1,0 +1,538 @@
+<div class="fixed inset-0 bg-black bg-opacity-60 z-40 flex items-center justify-center transition-opacity duration-300 ease-in-out">
+  <div class="bg-white rounded-lg shadow-2xl w-full max-w-5xl mx-4 flex flex-col max-h-[90vh] transform transition-transform duration-300 ease-in-out scale-100" (click)="$event.stopPropagation()">
+    @if (slot(); as currentSlot) {
+      <!-- Header -->
+      <div class="p-6 sm:p-8 flex-shrink-0 border-b border-gray-200">
+        <div class="flex justify-between items-start">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800">{{ displayTitle() }}</h2>
+            <p class="text-md text-indigo-600 font-semibold">{{ currentSlot.job.companyName }}</p>
+            <p class="text-sm text-gray-500 mt-1">{{ currentSlot.job.location }}</p>
+          </div>
+          <button (click)="onClose()" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+      </div>
+      
+      @if (viewMode() === 'details') {
+        <!-- Details View: Scrollable Content -->
+        <div class="p-6 sm:p-8 overflow-y-auto">
+          @if (currentSlot.job.isGrouped) {
+            <div class="mb-4 p-3 bg-blue-50 border-l-4 border-blue-400 text-blue-800">
+              <p class="text-sm">{{ t()('jobDetailsModal.groupedActivityInfo') }}</p>
+            </div>
+          }
+          <h3 class="text-lg font-semibold text-gray-700">{{ t()('jobDetailsModal.activityDetails') }}</h3>
+          <p class="mt-2 text-gray-600">{{ currentSlot.job.description }}</p>
+
+          <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            @if (currentSlot.job.isGrouped) {
+              @let dateRange = groupedActivityDateRange();
+              @if (dateRange.start && dateRange.end) {
+                <div class="flex items-start text-gray-700">
+                  <svg class="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                  <div>
+                    <span class="font-medium">{{ t()('jobDetailsModal.period') }}:</span>
+                    <span class="block text-sm">{{ formatDate(dateRange.start) }} - {{ formatDate(dateRange.end) }}</span>
+                  </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-gray-200">
+                  <h4 class="text-sm font-semibold text-gray-600">{{ t()('jobDetailsModal.sessions') }}:</h4>
+                  <ul class="mt-2 text-sm text-gray-600 space-y-1">
+                    @for (s of groupedActivitySlots(); track s.id) {
+                      <li class="pl-2">- {{ formatDate(s.startTime) }}, {{ formatTime(s.startTime) }} - {{ formatTime(s.endTime) }}</li>
+                    }
+                  </ul>
+                </div>
+              }
+            } @else {
+              <div class="flex items-center text-gray-700">
+                <svg class="w-5 h-5 mr-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span class="font-medium">{{ formatDate(currentSlot.startTime) }}</span>
+              </div>
+              <div class="flex items-center text-gray-700 mt-2">
+                <svg class="w-5 h-5 mr-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="font-medium">{{ formatTime(currentSlot.startTime) }} - {{ formatTime(currentSlot.endTime) }}</span>
+              </div>
+            }
+
+            @if (isViewerAdminForSlot() && capacityDetails(); as details) {
+              <div class="flex items-start text-gray-700 mt-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM5 11a1 1 0 100 2h4a1 1 0 100-2H5z" /></svg>
+                <div>
+                  <span class="font-medium">{{ t()('jobDetailsModal.capacity') }}: {{ details.totalCapacity - details.approvedCount }} / {{ details.totalCapacity }}</span>
+                  @if(details.mode === 'skill') {
+                    <ul class="text-xs list-disc pl-5 mt-1 space-y-0.5">
+                      @for(item of details.details; track item.skill) {
+                        <li>{{ item.skill }}: {{ item.total - item.approved }} / {{ item.total }}</li>
+                      }
+                    </ul>
+                  }
+                </div>
+              </div>
+            }
+            @if (currentSlot.requiredSkills && currentSlot.requiredSkills.length > 0) {
+              <div class="flex items-start text-gray-700 mt-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3 text-indigo-500 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                  <div>
+                      <span class="font-medium">{{ t()('jobDetailsModal.requiredSkills') }}:</span>
+                      <div class="flex flex-wrap gap-1 mt-1">
+                          @for(skill of currentSlot.requiredSkills; track skill) {
+                            @if (currentUserRegistration()?.status === 'approved') {
+                                <span class="inline-block text-xs font-medium px-2 py-1 rounded-full"
+                                      [class.bg-green-100]="skill === approvedSkill()"
+                                      [class.text-green-800]="skill === approvedSkill()"
+                                      [class.ring-1]="skill === approvedSkill()"
+                                      [class.ring-green-300]="skill === approvedSkill()"
+                                      [class.bg-gray-100]="skill !== approvedSkill()"
+                                      [class.text-gray-700]="skill !== approvedSkill()">
+                                  {{ skill }}
+                                </span>
+                            } @else {
+                                <span class="inline-block text-xs font-medium px-2 py-1 rounded-full"
+                                      [class.bg-indigo-100]="userEligibleSkills().includes(skill)"
+                                      [class.text-indigo-800]="userEligibleSkills().includes(skill)"
+                                      [class.bg-gray-100]="!userEligibleSkills().includes(skill)"
+                                      [class.text-gray-700]="!userEligibleSkills().includes(skill)">
+                                  {{ skill }}
+                                </span>
+                            }
+                          }
+                      </div>
+                  </div>
+              </div>
+            }
+            
+            @if (!isViewerAdminForSlot()) {
+              @if (currentUserRegistration(); as reg) {
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                  <h4 class="text-sm font-semibold text-gray-800">{{ t()('jobDetailsModal.yourStatus') }}
+                    <span class="capitalize font-bold" [class.text-yellow-600]="reg.status === 'pending'" [class.text-green-600]="reg.status === 'approved'">
+                      {{ t()('jobDetailsModal.statusValues.' + reg.status) }}
+                    </span>
+                  </h4>
+                  @if (approvedSkill(); as skill) {
+                    <p class="mt-1 text-sm text-green-700 font-medium">{{ t()('jobDetailsModal.approvedWithSkill') }}: {{ skill }}</p>
+                  }
+                  @if ((reg.status === 'approved') && reg.comment) {
+                    <p class="mt-1 text-sm text-gray-600 italic">"{{ t()(reg.comment) }}"</p>
+                  }
+                  @if (reg.needsTransportation) {
+                    <div class="mt-4">
+                      <h4 class="text-sm font-semibold text-gray-800">{{ t()('jobDetailsModal.transportationDetailsTitle') }}</h4>
+                      <div class="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                        <dl class="text-sm space-y-1">
+                          <div class="flex">
+                            <dt class="w-2/5 font-medium text-gray-600">{{ t()('jobDetailsModal.needsTransportationQuestion') }}</dt>
+                            <dd class="w-3/5 text-gray-800 font-semibold">{{ t()('general.yes') }}</dd>
+                          </div>
+                          @if(currentSlot.job.transportationDepartureTime) {
+                            <div class="flex">
+                              <dt class="w-2/5 font-medium text-gray-600">{{ t()('jobDetailsModal.transportationDepartureTime') }}</dt>
+                              <dd class="w-3/5 text-gray-800">{{ currentSlot.job.transportationDepartureTime }}</dd>
+                            </div>
+                          }
+                          @if(currentSlot.job.transportationDepartureLocation) {
+                            <div class="flex">
+                              <dt class="w-2/5 font-medium text-gray-600">{{ t()('jobDetailsModal.transportationDepartureLocation') }}</dt>
+                              <dd class="w-3/5 text-gray-800">{{ currentSlot.job.transportationDepartureLocation }}</dd>
+                            </div>
+                          }
+                          @if(currentSlot.job.transportationNotes) {
+                            <div class="flex">
+                              <dt class="w-2/5 font-medium text-gray-600">{{ t()('jobDetailsModal.transportationExtraNotes') }}</dt>
+                              <dd class="w-3/5 text-gray-800">{{ currentSlot.job.transportationNotes }}</dd>
+                            </div>
+                          }
+                        </dl>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </div>
+
+          <!-- Admin View -->
+          @if (isViewerAdminForSlot()) {
+            <div class="mt-6">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold text-gray-700">{{ t()('jobDetailsModal.totalRegistrations', { count: totalVisibleRegistrations() }) }}</h3>
+                @if (geminiService.isConfigured() && pendingRegistrations().length > 0) {
+                  <div>
+                    <button (click)="getAiSuggestion()" type="button" class="inline-flex items-center gap-x-2 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                        <path fill-rule="evenodd" d="M10 2.5a.75.75 0 01 .75.75v3.5a.75.75 0 01-1.5 0V3.25A.75.75 0 01 10 2.5ZM5.625 5.625a.75.75 0 01 1.06 0l2.47 2.47a.75.75 0 11-1.06 1.06L5.625 6.685a.75.75 0 01 0-1.06Zm8.75 0a.75.75 0 01 0 1.06l-2.47 2.47a.75.75 0 11-1.06-1.06l2.47-2.47a.75.75 0 01 1.06 0ZM2.5 10a.75.75 0 01 .75-.75h3.5a.75.75 0 01 0 1.5h-3.5a.75.75 0 01-.75-.75Zm14.25 0a.75.75 0 01 .75-.75h3.5a.75.75 0 01 0 1.5h-3.5a.75.75 0 01-.75-.75Zm-8.75 4.375a.75.75 0 01 1.06 0l2.47-2.47a.75.75 0 01 1.06 1.06L6.685 15.435a.75.75 0 01-1.06 0l-.001-.001a.75.75 0 01 0-1.06Zm8.75 0a.75.75 0 01 0 1.06l-2.47 2.47a.75.75 0 11-1.06-1.06l2.47-2.47a.75.75 0 01 1.06 0ZM10 17.5a.75.75 0 01-.75-.75v-3.5a.75.75 0 01 1.5 0v3.5a.75.75 0 01-.75-.75Z" clip-rule="evenodd" />
+                      </svg>
+                      {{ t()('ai.suggestButton') }}
+                    </button>
+                  </div>
+                }
+              </div>
+              @if (slotRegistrations().length === 0) {
+                <p class="mt-2 text-sm text-gray-500">{{ t()('jobDetailsModal.noRegistrations') }}</p>
+              } @else {
+                <div class="mt-2 space-y-4">
+                  @if (pendingRegistrations().length > 0) {
+                    <div>
+                      <h4 class="font-semibold text-yellow-700">{{ t()('jobDetailsModal.pendingHeader') }} ({{ pendingRegistrations().length }})</h4>
+                      <ul class="mt-2 space-y-3 text-sm text-gray-600">
+                        @for(reg of pendingRegistrations(); track reg.id) {
+                          <li class="p-3 border rounded-md bg-yellow-50/50">
+                            <div class="flex items-start space-x-3">
+                              @if (reg.user.profilePictureUrl) {
+                                <img class="w-8 h-8 rounded-full object-cover flex-shrink-0" [src]="reg.user.profilePictureUrl" [alt]="reg.user.name">
+                              } @else {
+                                <span class="inline-block h-8 w-8 overflow-hidden rounded-full bg-gray-200 flex-shrink-0">
+                                  <svg class="h-full w-full text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M24 20.993V24H0v-2.997A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                                  </svg>
+                                </span>
+                              }
+                              <div>
+                                @if (isViewerAdminForSlot()) {
+                                  <button (click)="openUserQuickView(reg.user)" type="button" class="font-medium text-gray-800 text-left hover:underline focus:outline-none">
+                                    {{ reg.user.name }} ({{ reg.user.username }})
+                                  </button>
+                                } @else {
+                                  <p class="font-medium text-gray-800">{{ reg.user.name }} ({{ reg.user.username }})</p>
+                                }
+                                @if (reg.user.skillsByCompany?.[reg.job.companyId]; as userSkills) {
+                                  @if(userSkills.length > 0) {
+                                    <div class="mt-2 flex flex-wrap gap-1">
+                                      @for(skill of userSkills; track skill) {
+                                        <span class="text-xs font-medium px-2 py-0.5 rounded-full"
+                                              [class.bg-indigo-100]="(slot()?.requiredSkills ?? []).includes(skill)"
+                                              [class.text-indigo-800]="(slot()?.requiredSkills ?? []).includes(skill)"
+                                              [class.font-semibold]="(slot()?.requiredSkills ?? []).includes(skill)"
+                                              [class.bg-gray-100]="!(slot()?.requiredSkills ?? []).includes(skill)"
+                                              [class.text-gray-700]="!(slot()?.requiredSkills ?? []).includes(skill)">
+                                          {{ skill }}
+                                        </span>
+                                      }
+                                    </div>
+                                  }
+                                }
+                              </div>
+                            </div>
+                             @if (reg.needsTransportation) {
+                              <div class="mt-2 pl-2 border-l-2 border-yellow-300">
+                                <p class="text-xs font-semibold text-yellow-800 flex items-center">
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 mr-1"><path d="M11.983 1.904a3.003 3.003 0 00-3.966 0L2.343 7.577a1.5 1.5 0 00-.63 1.118v5.61a1.5 1.5 0 001.5 1.5h1.5a1.5 1.5 0 001.5-1.5v-2.39a.75.75 0 01.75-.75h2.274a.75.75 0 01.75.75v2.39a1.5 1.5 0 001.5 1.5h1.5a1.5 1.5 0 001.5-1.5v-5.61a1.5 1.5 0 00-.63-1.118L11.983 1.904z" /><path d="M13 17.5a1.5 1.5 0 01-1.5 1.5h-3A1.5 1.5 0 017 17.5v-2.5a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v2.5z" /></svg>
+                                  {{ t()('portal.admin.filters.needsTransportation') }}
+                                </p>
+                                @if (reg.transportationNotes) {
+                                  <p class="text-xs text-yellow-700 italic mt-1 ml-2">"{{ reg.transportationNotes }}"</p>
+                                }
+                              </div>
+                            }
+                            <div class="mt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                              <input type="text" [placeholder]="t()('jobDetailsModal.commentPlaceholder')" 
+                                    [value]="comments()[reg.id] || ''"
+                                    (input)="updateComment(reg.id, $any($event.target).value)"
+                                    class="flex-grow block w-full rounded-md border-0 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm text-xs">
+                              <div class="flex items-center justify-end sm:justify-start space-x-2">
+                                  <button (click)="onApprove(reg)" class="px-2 py-1 text-xs rounded-md text-white bg-green-600 hover:bg-green-700 font-semibold transition-colors">
+                                      {{ t()('jobDetailsModal.approveButton') }}
+                                  </button>
+                              </div>
+                            </div>
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  }
+                  @if (approvedRegistrations().length > 0) {
+                    <div class="pt-2">
+                      <h4 class="font-semibold text-green-700">{{ t()('jobDetailsModal.approvedHeader') }} ({{ approvedRegistrations().length }})</h4>
+                      <ul class="divide-y divide-gray-200 text-sm text-gray-600">
+                        @for(reg of approvedRegistrations(); track reg.id) {
+                          <li class="py-2">
+                            <div class="flex items-start space-x-3">
+                              @if (reg.user.profilePictureUrl) {
+                                <img class="w-8 h-8 rounded-full object-cover flex-shrink-0" [src]="reg.user.profilePictureUrl" [alt]="reg.user.name">
+                              } @else {
+                                <span class="inline-block h-8 w-8 overflow-hidden rounded-full bg-gray-200 flex-shrink-0">
+                                  <svg class="h-full w-full text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M24 20.993V24H0v-2.997A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                                  </svg>
+                                </span>
+                              }
+                              <div>
+                                @if (isViewerAdminForSlot()) {
+                                  <button (click)="openUserQuickView(reg.user)" type="button" class="font-medium text-gray-800 text-left hover:underline focus:outline-none">
+                                    {{ reg.user.name }} ({{ reg.user.username }})
+                                  </button>
+                                } @else {
+                                  <p class="font-medium text-gray-800">{{ reg.user.name }} ({{ reg.user.username }})</p>
+                                }
+                                @if (reg.user.skillsByCompany?.[reg.job.companyId]; as userSkills) {
+                                  @if(userSkills.length > 0) {
+                                    <div class="mt-2 flex flex-wrap gap-1">
+                                      @for(skill of userSkills; track skill) {
+                                        @let registeredSkill = getRegisteredSkillForUser(reg);
+                                        <span class="text-xs font-medium px-2 py-0.5 rounded-full"
+                                              [class.bg-green-100]="skill === registeredSkill"
+                                              [class.text-green-800]="skill === registeredSkill"
+                                              [class.font-semibold]="skill === registeredSkill"
+                                              [class.bg-indigo-100]="skill !== registeredSkill && (slot()?.requiredSkills ?? []).includes(skill)"
+                                              [class.text-indigo-800]="skill !== registeredSkill && (slot()?.requiredSkills ?? []).includes(skill)"
+                                              [class.bg-gray-100]="!(slot()?.requiredSkills ?? []).includes(skill)"
+                                              [class.text-gray-700]="!(slot()?.requiredSkills ?? []).includes(skill)">
+                                          {{ skill }}
+                                        </span>
+                                      }
+                                    </div>
+                                  }
+                                }
+                              </div>
+                            </div>
+                            @if (reg.needsTransportation) {
+                               <div class="mt-1 pl-2 border-l-2 border-green-300">
+                                <p class="text-xs font-semibold text-green-800 flex items-center">
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 mr-1"><path d="M11.983 1.904a3.003 3.003 0 00-3.966 0L2.343 7.577a1.5 1.5 0 00-.63 1.118v5.61a1.5 1.5 0 001.5 1.5h1.5a1.5 1.5 0 001.5-1.5v-2.39a.75.75 0 01.75-.75h2.274a.75.75 0 01.75.75v2.39a1.5 1.5 0 001.5 1.5h1.5a1.5 1.5 0 001.5-1.5v-5.61a1.5 1.5 0 00-.63-1.118L11.983 1.904z" /><path d="M13 17.5a1.5 1.5 0 01-1.5 1.5h-3A1.5 1.5 0 017 17.5v-2.5a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v2.5z" /></svg>
+                                  {{ t()('portal.admin.filters.needsTransportation') }}
+                                </p>
+                                @if (reg.transportationNotes) {
+                                  <p class="text-xs text-green-700 italic mt-1 ml-2">"{{ reg.transportationNotes }}"</p>
+                                }
+                              </div>
+                            }
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  }
+                  @if (pendingRegistrations().length === 0 && approvedRegistrations().length > 0) {
+                      <p class="text-xs text-gray-500">{{ t()('jobDetailsModal.noPendingRequests') }}</p>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          @if (!isViewerAdminForSlot() && !currentUserRegistration() && currentSlot.job.offersTransportation) {
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">{{ t()('jobDetailsModal.needsTransportationQuestion') }}</label>
+                <fieldset class="mt-2">
+                  <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                      <input id="transport-yes" name="transport" type="radio" [checked]="needsTransportation()" (change)="needsTransportation.set(true)" class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                      <label for="transport-yes" class="ml-2 block text-sm text-gray-900">{{ t()('general.yes') }}</label>
+                    </div>
+                    <div class="flex items-center">
+                      <input id="transport-no" name="transport" type="radio" [checked]="!needsTransportation()" (change)="needsTransportation.set(false)" class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                      <label for="transport-no" class="ml-2 block text-sm text-gray-900">{{ t()('general.no') }}</label>
+                    </div>
+                  </div>
+                </fieldset>
+              </div>
+              @if (needsTransportation()) {
+                <div class="p-3 bg-blue-50 border-l-4 border-blue-400 text-blue-800">
+                  <h4 class="text-sm font-semibold">{{ t()('jobDetailsModal.transportationDetailsTitle') }}</h4>
+                  <dl class="mt-2 text-sm space-y-1">
+                    @if(currentSlot.job.transportationDepartureTime) {
+                      <div class="flex">
+                        <dt class="w-2/5 font-medium text-gray-600">{{ t()('jobDetailsModal.transportationDepartureTime') }}</dt>
+                        <dd class="w-3/5 text-gray-800">{{ currentSlot.job.transportationDepartureTime }}</dd>
+                      </div>
+                    }
+                    @if(currentSlot.job.transportationDepartureLocation) {
+                      <div class="flex">
+                        <dt class="w-2/5 font-medium text-gray-600">{{ t()('jobDetailsModal.transportationDepartureLocation') }}</dt>
+                        <dd class="w-3/5 text-gray-800">{{ currentSlot.job.transportationDepartureLocation }}</dd>
+                      </div>
+                    }
+                    @if(currentSlot.job.transportationNotes) {
+                      <div class="flex">
+                        <dt class="w-2/5 font-medium text-gray-600">{{ t()('jobDetailsModal.transportationExtraNotes') }}</dt>
+                        <dd class="w-3/5 text-gray-800">{{ currentSlot.job.transportationNotes }}</dd>
+                      </div>
+                    }
+                  </dl>
+                </div>
+              }
+            </div>
+          }
+        </div>
+        
+        <!-- Details View: Footer -->
+        <div class="p-6 sm:p-8 flex-shrink-0 border-t border-gray-200">
+          <div class="flex flex-wrap justify-end gap-4">
+            <button (click)="onClose()" class="px-6 py-2 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-colors">
+              {{ t()('jobDetailsModal.buttons.close') }}
+            </button>
+
+            <!-- Admin Buttons -->
+            @if (isViewerAdminForSlot()) {
+              <button (click)="onDelete()"
+                      [disabled]="!canDeleteSlot()"
+                      [title]="canDeleteSlot() ? t()('jobDetailsModal.buttons.delete') : t()('jobDetailsModal.errors.deleteWithUsers')"
+                      class="px-6 py-2 rounded-md text-white bg-red-600 hover:bg-red-700 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-red-300 disabled:cursor-not-allowed">
+                {{ t()('jobDetailsModal.buttons.delete') }}
+              </button>
+              <button (click)="onEdit()" class="px-6 py-2 rounded-md text-white bg-yellow-500 hover:bg-yellow-600 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400">
+                {{ t()('jobDetailsModal.buttons.edit') }}
+              </button>
+            }
+
+            <!-- User Buttons -->
+            @if (!isViewerAdminForSlot()) {
+              @if (!currentUserRegistration() && !isSlotFull()) {
+                @if (hasConflictingApprovedSlot()) {
+                  <div class="w-full text-right">
+                    <p class="px-6 py-2 rounded-md text-sm text-yellow-800 bg-yellow-100 border border-yellow-200">
+                      {{ t()('jobDetailsModal.errors.conflict') }}
+                    </p>
+                  </div>
+                } @else if (userLacksSkills()) {
+                  <div class="w-full text-right">
+                    <p class="px-6 py-2 rounded-md text-sm text-red-800 bg-red-100 border border-red-200">
+                      {{ t()('jobDetailsModal.errors.noSkills') }}
+                    </p>
+                  </div>
+                } @else if (isSlotInPast()) {
+                  <div class="w-full text-right">
+                    <p class="px-6 py-2 rounded-md text-sm text-gray-800 bg-gray-100 border border-gray-200">
+                      {{ t()('jobDetailsModal.errors.inPast') }}
+                    </p>
+                  </div>
+                } @else if (isCurrentUserInactive()) {
+                  <div class="w-full text-right">
+                    <p class="px-6 py-2 rounded-md text-sm text-red-800 bg-red-100 border border-red-200">
+                      {{ t()('jobDetailsModal.errors.inactive') }}
+                    </p>
+                  </div>
+                } @else {
+                  <button (click)="onRegister()" class="px-6 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    {{ t()('jobDetailsModal.buttons.register') }}
+                  </button>
+                }
+              } @else if (currentUserRegistration()?.status === 'pending') {
+                <button (click)="onCancel()" class="px-6 py-2 rounded-md text-white bg-red-600 hover:bg-red-700 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                  {{ t()('jobDetailsModal.buttons.cancel') }}
+                </button>
+              }
+            }
+          </div>
+        </div>
+      } @else {
+        <!-- Skill Selection View -->
+        <div class="p-6 sm:p-8 overflow-y-auto">
+          <h3 class="text-lg font-semibold text-gray-700">{{ t()('jobDetailsModal.selectSkillTitle') }}</h3>
+          <p class="mt-2 text-gray-600">{{ t()('jobDetailsModal.selectSkillPrompt') }}</p>
+
+          <fieldset class="mt-4">
+            <legend class="sr-only">Available Skills</legend>
+            <div class="space-y-2">
+              @for (skill of availableEligibleSkills(); track skill) {
+                <label 
+                  class="relative block cursor-pointer rounded-lg border bg-white px-6 py-4 shadow-sm focus:outline-none sm:flex sm:justify-between"
+                  [class.border-indigo-600]="selectedSkill() === skill"
+                  [class.border-gray-300]="selectedSkill() !== skill"
+                  [class.ring-2]="selectedSkill() === skill"
+                  [class.ring-indigo-600]="selectedSkill() === skill"
+                >
+                  <input type="radio" name="skill-selection" [value]="skill" class="sr-only" (change)="selectedSkill.set(skill)" [checked]="selectedSkill() === skill">
+                  <span class="flex items-center">
+                    <span class="flex flex-col text-sm">
+                      <span class="font-medium text-gray-900">{{ skill }}</span>
+                    </span>
+                  </span>
+                </label>
+              }
+            </div>
+          </fieldset>
+        </div>
+        <!-- Skill Selection Footer -->
+        <div class="p-6 sm:p-8 flex-shrink-0 border-t border-gray-200">
+          <div class="flex flex-wrap justify-end gap-4">
+            <button (click)="viewMode.set('details')" class="px-6 py-2 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-colors">
+              {{ t()('jobDetailsModal.buttons.back') }}
+            </button>
+            <button (click)="confirmRegistration()" [disabled]="!selectedSkill()" class="px-6 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300">
+              {{ t()('jobDetailsModal.buttons.confirmRegistration') }}
+            </button>
+          </div>
+        </div>
+      }
+    } @else {
+      <p class="text-gray-600 p-8">{{ t()('jobDetailsModal.noSlotSelected') }}</p>
+    }
+  </div>
+</div>
+
+@if (showDeleteConfirm() && slot(); as currentSlot) {
+  <app-confirmation-modal 
+    [message]="currentSlot.job.isGrouped 
+      ? t()('confirmationModal.messages.removeActivityGroup', { name: displayTitle(), count: groupedActivitySlots().length }) 
+      : t()('confirmationModal.messages.removeActivity', { name: displayTitle() })"
+    (confirm)="confirmDelete()"
+    (cancel)="showDeleteConfirm.set(false)">
+  </app-confirmation-modal>
+}
+
+@if (showCancelConfirm() && currentUserRegistration(); as reg) {
+  <app-confirmation-modal 
+    [message]="t()('confirmationModal.messages.cancelRegistration', { name: getDisplayTitleForRegistration(reg) })"
+    (confirm)="confirmCancel()"
+    (cancel)="showCancelConfirm.set(false)">
+  </app-confirmation-modal>
+}
+
+@if (isUserQuickViewOpen() && selectedUserForQuickView()) {
+  <app-user-quick-view-modal
+    [user]="selectedUserForQuickView()!"
+    (close)="closeUserQuickView()">
+  </app-user-quick-view-modal>
+}
+
+@if (isAiModalOpen() && selectedGroupForAi()) {
+  <app-ai-suggestion-modal
+    [group]="selectedGroupForAi()!"
+    (close)="closeAiModal()"
+    (apply)="applyAiSuggestion($event)">
+  </app-ai-suggestion-modal>
+}
+
+@if (showSkillSelectionForApproval() && approvalCandidate(); as candidate) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center transition-opacity" (click)="cancelApprovalWithSkill()">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md m-4 p-6 sm:p-8 transform transition-transform" (click)="$event.stopPropagation()">
+      <h3 class="text-lg font-semibold leading-6 text-gray-900">{{ t()('confirmationModal.selectSkillTitle') }}</h3>
+      <div class="mt-2">
+        <p class="text-sm text-gray-600">{{ t()('confirmationModal.selectSkillMessage', { name: candidate.registration.user.name }) }}</p>
+      </div>
+      <fieldset class="mt-4">
+        <legend class="sr-only">Matching Skills</legend>
+        <div class="space-y-2">
+          @for (skill of candidate.matchingSkills; track skill) {
+            <label class="relative block cursor-pointer rounded-lg border bg-white px-4 py-3 shadow-sm focus:outline-none sm:flex sm:justify-between"
+                  [class.border-indigo-600]="skillForApproval() === skill"
+                  [class.border-gray-300]="skillForApproval() !== skill"
+                  [class.ring-2]="skillForApproval() === skill"
+                  [class.ring-indigo-600]="skillForApproval() === skill">
+              <input type="radio" name="skill-selection-approval" [value]="skill" class="sr-only" (change)="skillForApproval.set(skill)" [checked]="skillForApproval() === skill">
+              <span class="flex items-center">
+                <span class="flex flex-col text-sm">
+                  <span class="font-medium text-gray-900">{{ skill }}</span>
+                </span>
+              </span>
+            </label>
+          }
+        </div>
+      </fieldset>
+      <div class="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+        <button (click)="cancelApprovalWithSkill()" type="button" class="w-full inline-flex justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:w-auto">
+          {{ t()('confirmationModal.buttons.cancel') }}
+        </button>
+        <button (click)="confirmApprovalWithSkill()" type="button" class="w-full inline-flex justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 sm:w-auto" [disabled]="!skillForApproval()">
+          {{ t()('confirmationModal.buttons.confirmApproval') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

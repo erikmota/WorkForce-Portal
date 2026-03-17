@@ -1,0 +1,14 @@
+<div class="flex items-center space-x-1 sm:space-x-2">
+  @for (lang of languages; track lang.code) {
+    <button
+      (click)="setLanguage(lang.code)"
+      [title]="lang.label"
+      class="p-2 rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      [class.scale-125]="currentLang() === lang.code"
+      [class.opacity-60]="currentLang() !== lang.code"
+      [class.hover:opacity-100]="currentLang() !== lang.code"
+      [class.hover:scale-110]="currentLang() !== lang.code">
+      <span class="text-xl select-none">{{ lang.flag }}</span>
+    </button>
+  }
+</div>

@@ -1,0 +1,142 @@
+<div class="px-4 sm:px-0" id="report-section">
+  <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6 print:hidden">
+    <h2 class="text-2xl font-bold tracking-tight text-gray-900">{{ t()('report.title') }}</h2>
+    <div class="flex items-center gap-2">
+       <button (click)="downloadCSV()" type="button" class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+        <svg class="-ml-0.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
+          <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
+        </svg>
+        {{ t()('report.downloadCSV') }}
+      </button>
+      <button (click)="printReport()" type="button" class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+        <svg class="-ml-0.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5 2.75C5 1.784 5.784 1 6.75 1h6.5c.966 0 1.75.784 1.75 1.75v3.552c.377.046.752.097 1.126.153A2.222 2.222 0 0118 8.652v4.096a2.222 2.222 0 01-2.122 2.197c-.374.056-.75.107-1.126.153v3.552c0 .966-.784 1.75-1.75 1.75h-6.5A1.75 1.75 0 015 17.25V2.75zm1.75-.25a.25.25 0 00-.25.25v3.5c0 .138.112.25.25.25h6.5a.25.25 0 00.25-.25v-3.5a.25.25 0 00-.25-.25h-6.5zM6.25 10a.75.75 0 000 1.5h7.5a.75.75 0 000-1.5h-7.5zM6.25 12.75a.75.75 0 000 1.5h7.5a.75.75 0 000-1.5h-7.5zM5 13.25c0-.138.112-.25.25-.25h.5a.75.75 0 010 1.5h-.5a.25.25 0 01-.25-.25v-.5a.25.25 0 01.25-.25zM5 17.25v-3.5c0-.138.112-.25.25-.25h6.5a.25.25 0 01.25.25v3.5a.25.25 0 01-.25.25h-6.5a.25.25 0 01-.25-.25z" clip-rule="evenodd" />
+        </svg>
+        {{ t()('report.print') }}
+      </button>
+      <button (click)="shareReport()" type="button" class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+        <svg class="-ml-0.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M13 4.5a2.5 2.5 0 11.702 4.283l-4.118 4.117a2.5 2.5 0 11-3.536-3.536l4.118-4.117A2.5 2.5 0 0113 4.5z" />
+          <path d="M6.293 6.293a1 1 0 011.414 0l4.118 4.117a1 1 0 01-1.414 1.414L6.293 7.707a1 1 0 010-1.414z" />
+        </svg>
+        {{ t()('report.share') }}
+      </button>
+    </div>
+  </div>
+
+  @if (reportRows().length > 0) {
+    <!-- Dashboard Section -->
+    <div class="mb-8 print:hidden">
+      <h3 class="text-lg font-medium leading-6 text-gray-900">{{ t()('report.summary') }}</h3>
+      @let stats = reportStats();
+      <div class="mt-2 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <!-- Stat Card 1 -->
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+          <dt class="truncate text-sm font-medium text-gray-500">{{ t()('report.totalActivities') }}</dt>
+          <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{ stats.totalActivities }}</dd>
+        </div>
+        <!-- Stat Card 2 -->
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+          <dt class="truncate text-sm font-medium text-gray-500">{{ t()('report.totalCapacity') }}</dt>
+          <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{ stats.totalCapacity }}</dd>
+        </div>
+        <!-- Stat Card 3 -->
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+          <dt class="truncate text-sm font-medium text-gray-500">{{ t()('report.totalApproved') }}</dt>
+          <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{ stats.totalApproved }}</dd>
+        </div>
+        <!-- Stat Card 4 -->
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+          <dt class="truncate text-sm font-medium text-gray-500">{{ t()('report.fillRate') }}</dt>
+          <dd class="mt-1 text-3xl font-semibold tracking-tight text-indigo-600">{{ stats.fillRate }}%</dd>
+        </div>
+      </div>
+      <!-- Charts -->
+      <div class="mt-8 grid grid-cols-1 gap-8" [class.lg:grid-cols-2]="shouldShowCompanyChart() && skillUtilizationChartData().length > 0">
+        @if (shouldShowCompanyChart()) {
+          <div class="rounded-lg bg-white p-6 shadow">
+            <h4 class="text-base font-semibold text-gray-800">{{ t()('report.activitiesByCompany') }}</h4>
+            <div #companyChart class="mt-4 h-64 w-full"></div>
+          </div>
+        }
+        @if (skillUtilizationChartData().length > 0) {
+          <div class="rounded-lg bg-white p-6 shadow" [class.lg:col-span-2]="!shouldShowCompanyChart()">
+             <h4 class="text-base font-semibold text-gray-800">{{ t()('report.skillUtilization') }}</h4>
+             <div #skillChart class="mt-4 h-64 w-full"></div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="overflow-x-auto bg-white shadow-lg rounded-lg">
+      <table class="min-w-full divide-y divide-gray-300">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">{{ t()('report.headers.startDate') }}</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{{ t()('report.headers.endDate') }}</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{{ t()('report.headers.time') }}</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{{ t()('report.headers.activity') }}</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{{ t()('report.headers.skills') }}</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{{ t()('report.headers.capacity') }}</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{{ t()('report.headers.registeredUsers') }}</th>
+            <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-left text-sm font-semibold text-gray-900">{{ t()('report.headers.status') }}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 bg-white">
+          @for (row of reportRows(); track row.key) {
+            <tr>
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                {{ row.startDate | date:'shortDate':undefined:translationService.currentLanguage() }}
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                 {{ row.endDate | date:'shortDate':undefined:translationService.currentLanguage() }}
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ row.startTime | date:'shortTime':undefined:translationService.currentLanguage() }} - {{ row.endTime | date:'shortTime':undefined:translationService.currentLanguage() }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                <button (click)="onActivityClick(row.slot)" type="button" class="text-indigo-600 hover:text-indigo-900 hover:underline focus:outline-none font-medium text-left">
+                  {{ row.jobTitle }}
+                </button>
+              </td>
+              <td class="px-3 py-4 text-sm text-gray-500 max-w-xs truncate" [title]="row.skills">{{ row.skills }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ row.capacityText }}</td>
+              <td class="px-3 py-4 text-sm text-gray-500 max-w-xs truncate" [title]="row.approvedUserNames">{{ row.approvedUserNames }}</td>
+              <td class="whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium sm:pr-6">
+                <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium"
+                      [class.bg-red-100]="row.statusText === t()('report.status.available')"
+                      [class.text-red-700]="row.statusText === t()('report.status.available')"
+                      [class.bg-green-100]="row.statusText === t()('report.status.booked')"
+                      [class.text-green-700]="row.statusText === t()('report.status.booked')"
+                      [class.bg-yellow-100]="row.statusText === t()('report.status.pending')"
+                      [class.text-yellow-800]="row.statusText === t()('report.status.pending')">
+                  {{ row.statusText }}
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+        <tfoot class="bg-gray-50 border-t-2 border-gray-300">
+          @let totals = reportTotals();
+          <tr class="font-semibold">
+            <td colspan="4" class="px-6 py-4 text-right text-sm text-gray-800">{{ t()('report.totalsLabel') }}</td>
+            <td class="px-3 py-4 text-sm text-gray-800"></td> <!-- Spacer for Skills column -->
+            <td class="px-3 py-4 text-sm text-gray-800">{{ totals.totalFilled }} / {{ totals.totalCapacity }}</td>
+            <td class="px-3 py-4 text-sm text-gray-800 text-center">{{ totals.totalFilled }}</td>
+            <td class="px-3 py-4 text-sm text-gray-800 sm:pr-6">
+              <div class="flex flex-col items-start space-y-1">
+                <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium bg-red-100 text-red-700">{{ t()('report.status.available') }}: {{ totals.statusCounts.available }}</span>
+                <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium bg-green-100 text-green-700">{{ t()('report.status.booked') }}: {{ totals.statusCounts.booked }}</span>
+                <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800">{{ t()('report.status.pending') }}: {{ totals.statusCounts.pending }}</span>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  } @else {
+    <div class="text-center py-12 bg-white shadow-lg rounded-lg">
+      <h3 class="mt-2 text-sm font-semibold text-gray-900">{{ t()('report.noResults') }}</h3>
+      <p class="mt-1 text-sm text-gray-500">{{ t()('report.noResultsMessage') }}</p>
+    </div>
+  }
+</div>

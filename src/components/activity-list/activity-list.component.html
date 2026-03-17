@@ -1,0 +1,107 @@
+<div class="px-4 sm:px-0">
+  @if (activities().length > 0) {
+    <div class="space-y-4">
+      @for (item of activities(); track item.representativeSlot.id) {
+        @let slot = item.representativeSlot;
+        @let viewStatus = getSlotViewStatus(slot);
+        <div class="bg-white shadow-md rounded-lg overflow-hidden flex flex-col md:flex-row transition-shadow hover:shadow-lg cursor-pointer" (click)="onDetails(item, $event)">
+          <!-- Date Column -->
+          <div class="flex-shrink-0 w-full md:w-32 bg-gray-50 p-4 flex md:flex-col justify-between md:justify-center items-center text-center border-b md:border-b-0 md:border-r border-gray-200">
+            <div class="text-indigo-600">
+              <p class="text-sm font-semibold uppercase">{{ slot.startTime | date:'MMM':undefined:translationService.currentLanguage() }}</p>
+              <p class="text-3xl font-bold">{{ slot.startTime | date:'d' }}</p>
+            </div>
+            @if(item.isGroup) {
+               <div class="text-gray-600 mt-0 md:mt-2">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mx-auto hidden md:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                   <path stroke-linecap="round" stroke-linejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+                 </svg>
+                <p class="text-sm font-semibold uppercase">{{ item.slots[item.slots.length-1].startTime | date:'MMM':undefined:translationService.currentLanguage() }}</p>
+                <p class="text-3xl font-bold">{{ item.slots[item.slots.length-1].startTime | date:'d' }}</p>
+              </div>
+            }
+          </div>
+
+          <!-- Details Column -->
+          <div class="flex-grow p-4 flex flex-col">
+            <div class="flex-grow">
+              @if(item.isGroup) {
+                <div class="flex items-center gap-2">
+                  <h3 class="font-bold text-gray-800">{{ getSlotDisplayTitle(slot) }}</h3>
+                  <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">{{ t()('registerActivity.isGrouped') }}</span>
+                </div>
+                <p class="text-sm text-gray-600">{{ slot.job.companyName }} &middot; {{ slot.job.location }}</p>
+                <p class="text-xs text-gray-500 mt-2">{{ t()('jobDetailsModal.groupedActivityInfo') }}</p>
+              } @else {
+                <h3 class="font-bold text-gray-800">{{ getSlotDisplayTitle(slot) }}</h3>
+                <p class="text-sm text-gray-600">{{ slot.job.companyName }} &middot; {{ slot.job.location }}</p>
+                <p class="text-sm text-gray-500 mt-1">{{ slot.startTime | date:'shortTime':undefined:translationService.currentLanguage() }} - {{ slot.endTime | date:'shortTime':undefined:translationService.currentLanguage() }}</p>
+              }
+
+              <!-- Skills -->
+              @if (slot.requiredSkills && slot.requiredSkills.length > 0) {
+                <div class="mt-2 flex flex-wrap gap-1">
+                  @let approvedSkill = getApprovedSkill(item);
+                  @for(skill of slot.requiredSkills; track skill) {
+                    @if (viewStatus.status === 'booked') {
+                      <span class="text-xs font-medium px-2 py-0.5 rounded-full"
+                            [class.bg-green-100]="skill === approvedSkill"
+                            [class.text-green-800]="skill === approvedSkill"
+                            [class.ring-1]="skill === approvedSkill"
+                            [class.ring-green-300]="skill === approvedSkill"
+                            [class.bg-gray-100]="skill !== approvedSkill"
+                            [class.text-gray-700]="skill !== approvedSkill">
+                        {{ skill }}
+                      </span>
+                    } @else {
+                      <span class="text-xs font-medium px-2 py-0.5 rounded-full"
+                            [class.bg-indigo-100]="userEligibleSkills(slot).includes(skill)"
+                            [class.text-indigo-800]="userEligibleSkills(slot).includes(skill)"
+                            [class.bg-gray-100]="!userEligibleSkills(slot).includes(skill)"
+                            [class.text-gray-700]="!userEligibleSkills(slot).includes(skill)">
+                        {{ skill }}
+                      </span>
+                    }
+                  }
+                </div>
+              }
+            </div>
+            
+            <div class="mt-4 text-xs text-gray-500 line-clamp-2">
+              {{ slot.job.description }}
+            </div>
+          </div>
+
+          <!-- Actions Column -->
+          <div class="flex-shrink-0 w-full md:w-48 p-4 flex flex-col items-stretch justify-center space-y-2 border-t md:border-t-0 md:border-l border-gray-200">
+            <p class="font-semibold text-center text-sm"
+              [class.text-green-600]="viewStatus.status === 'booked'"
+              [class.text-yellow-600]="viewStatus.status === 'pending'"
+              [class.text-blue-600]="viewStatus.status === 'available'"
+              [class.text-gray-500]="viewStatus.status === 'full'">
+              {{ viewStatus.text }}
+            </p>
+            @if (viewStatus.status === 'available' && !isSlotFull(slot)) {
+              <button (click)="onRegister(item, $event)" class="w-full px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors">
+                {{ t()('activityList.quickRegister') }}
+              </button>
+            }
+            @if (viewStatus.status === 'pending') {
+              <button (click)="onCancel(item, $event)" class="w-full px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">
+                {{ t()('activityList.quickCancel') }}
+              </button>
+            }
+            <button (click)="onDetails(item, $event)" class="w-full px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+              {{ t()('jobDetailsModal.activityDetails') }}
+            </button>
+          </div>
+
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="text-center py-12 bg-white shadow-lg rounded-lg">
+      <h3 class="mt-2 text-sm font-semibold text-gray-900">{{ t()('registerActivity.noActivitiesFound') }}</h3>
+    </div>
+  }
+</div>

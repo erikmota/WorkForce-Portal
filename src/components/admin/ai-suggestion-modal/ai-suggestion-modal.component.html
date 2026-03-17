@@ -1,0 +1,189 @@
+<div class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center transition-opacity duration-300 ease-in-out" (click)="onClose()">
+  <div class="bg-white rounded-lg shadow-2xl w-full max-w-7xl mx-4 flex flex-col max-h-[90vh] transform transition-transform duration-300 ease-in-out scale-100" (click)="$event.stopPropagation()">
+    
+    <!-- Header -->
+    <div class="p-6 flex-shrink-0 border-b border-gray-200">
+      <div class="flex justify-between items-start">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6 text-indigo-600">
+            <path fill-rule="evenodd" d="M10 2.5a.75.75 0 01 .75.75v3.5a.75.75 0 01-1.5 0V3.25A.75.75 0 01 10 2.5ZM5.625 5.625a.75.75 0 01 1.06 0l2.47 2.47a.75.75 0 11-1.06 1.06L5.625 6.685a.75.75 0 01 0-1.06Zm8.75 0a.75.75 0 01 0 1.06l-2.47 2.47a.75.75 0 11-1.06-1.06l2.47-2.47a.75.75 0 01 1.06 0ZM2.5 10a.75.75 0 01 .75-.75h3.5a.75.75 0 01 0 1.5h-3.5a.75.75 0 01-.75-.75Zm14.25 0a.75.75 0 01 .75-.75h3.5a.75.75 0 01 0 1.5h-3.5a.75.75 0 01-.75-.75Zm-8.75 4.375a.75.75 0 01 1.06 0l2.47-2.47a.75.75 0 01 1.06 1.06L6.685 15.435a.75.75 0 01-1.06 0l-.001-.001a.75.75 0 01 0-1.06Zm8.75 0a.75.75 0 01 0 1.06l-2.47 2.47a.75.75 0 11-1.06-1.06l2.47-2.47a.75.75 0 01 1.06 0ZM10 17.5a.75.75 0 01-.75-.75v-3.5a.75.75 0 01 1.5 0v3.5a.75.75 0 01-.75-.75Z" clip-rule="evenodd" />
+          </svg>
+          <h2 class="text-2xl font-bold text-gray-800">{{ t()('ai.modalTitle') }}</h2>
+        </div>
+        <button (click)="onClose()" class="text-gray-400 hover:text-gray-600 transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Content -->
+    <div class="p-6 overflow-y-auto">
+      @if (isLoading() && chatHistory().length === 0) {
+        <div class="flex flex-col items-center justify-center h-64">
+          <svg class="animate-spin h-12 w-12 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p class="mt-4 text-gray-600 font-semibold">{{ t()('ai.loading') }}</p>
+        </div>
+      } @else if (error()) {
+         <div class="text-center h-64 flex flex-col items-center justify-center">
+            <p class="text-red-600 font-semibold">{{ error() }}</p>
+         </div>
+      } @else if (suggestion(); as sugg) {
+        <div class="space-y-6">
+          <!-- Chat History -->
+          <div class="space-y-4">
+            @for (interaction of chatHistory(); track $index) {
+              <!-- AI Rationale -->
+              @if(interaction.role === 'model') {
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-700">{{ t()('ai.rationale') }}</h3>
+                  <div class="mt-2 p-3 bg-blue-50 border-l-4 border-blue-400 text-blue-800 rounded-r-md">
+                    <p class="text-sm italic">{{ interaction.text }}</p>
+                  </div>
+                </div>
+              }
+              <!-- User Message -->
+              @if(interaction.role === 'user') {
+                <div class="flex justify-end">
+                  <div class="p-3 bg-gray-100 border border-gray-200 text-gray-800 rounded-lg max-w-lg">
+                    <p class="text-sm">{{ interaction.text }}</p>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+
+          <!-- Refining Loader -->
+          @if(isRefining()) {
+            <div class="flex items-center justify-center p-4">
+              <div class="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-indigo-500"></div>
+            </div>
+          }
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Recommended Approvals -->
+            @if (sugg.approvals.length > 0) {
+              <div>
+                <h4 class="font-semibold text-green-700">{{ t()('ai.recommendedApprovals') }} ({{ sugg.approvals.length }})</h4>
+                <ul class="mt-2 space-y-3 text-sm text-gray-600">
+                  @for(item of sugg.approvals; track item.registration.id) {
+                    <li class="p-3 border rounded-md bg-green-50/50">
+                      <div class="flex items-start space-x-3">
+                        <button type="button" (click)="openUserQuickView(item.registration.user)" class="flex-shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                          <img class="w-8 h-8 rounded-full object-cover" [src]="item.registration.user.profilePictureUrl || 'https://i.pravatar.cc/150?u=' + item.registration.user.id" [alt]="item.registration.user.name">
+                        </button>
+                        <div>
+                           <button type="button" (click)="openUserQuickView(item.registration.user)" class="font-medium text-gray-800 text-left hover:underline focus:outline-none">
+                            {{ item.registration.user.name }}
+                          </button>
+                          <p class="text-xs text-gray-500">{{ item.registration.user.username }}</p>
+                          @if (item.registration.user.skillsByCompany?.[item.registration.job.companyId]; as userSkills) {
+                            @if(userSkills.length > 0) {
+                              <div class="mt-2 flex flex-wrap gap-1">
+                                @for(skill of userSkills; track skill) {
+                                  <span class="text-xs font-medium px-2 py-0.5 rounded-full"
+                                        [class.bg-indigo-100]="(group().requiredSkills ?? []).includes(skill)"
+                                        [class.text-indigo-800]="(group().requiredSkills ?? []).includes(skill)"
+                                        [class.font-semibold]="(group().requiredSkills ?? []).includes(skill)"
+                                        [class.bg-gray-100]="!(group().requiredSkills ?? []).includes(skill)"
+                                        [class.text-gray-700]="!(group().requiredSkills ?? []).includes(skill)">
+                                    {{ skill }}
+                                  </span>
+                                }
+                              </div>
+                            }
+                          }
+                        </div>
+                      </div>
+                      <p class="mt-2 text-xs italic text-green-800">"{{ item.reason }}"</p>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+
+            <!-- Recommended Rejections -->
+            @if (sugg.rejections.length > 0) {
+              <div>
+                <h4 class="font-semibold text-gray-700">{{ t()('ai.recommendedRejections') }} ({{ sugg.rejections.length }})</h4>
+                <ul class="mt-2 space-y-3 text-sm text-gray-600">
+                  @for(item of sugg.rejections; track item.registration.id) {
+                    <li class="p-3 border rounded-md bg-gray-50">
+                      <div class="flex items-start space-x-3">
+                        <button type="button" (click)="openUserQuickView(item.registration.user)" class="flex-shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                          <img class="w-8 h-8 rounded-full object-cover" [src]="item.registration.user.profilePictureUrl || 'https://i.pravatar.cc/150?u=' + item.registration.user.id" [alt]="item.registration.user.name">
+                        </button>
+                        <div>
+                           <button type="button" (click)="openUserQuickView(item.registration.user)" class="font-medium text-gray-800 text-left hover:underline focus:outline-none">
+                            {{ item.registration.user.name }}
+                          </button>
+                          <p class="text-xs text-gray-500">{{ item.registration.user.username }}</p>
+                          @if (item.registration.user.skillsByCompany?.[item.registration.job.companyId]; as userSkills) {
+                            @if(userSkills.length > 0) {
+                              <div class="mt-2 flex flex-wrap gap-1">
+                                @for(skill of userSkills; track skill) {
+                                  <span class="text-xs font-medium px-2 py-0.5 rounded-full"
+                                        [class.bg-indigo-100]="(group().requiredSkills ?? []).includes(skill)"
+                                        [class.text-indigo-800]="(group().requiredSkills ?? []).includes(skill)"
+                                        [class.font-semibold]="(group().requiredSkills ?? []).includes(skill)"
+                                        [class.bg-gray-100]="!(group().requiredSkills ?? []).includes(skill)"
+                                        [class.text-gray-700]="!(group().requiredSkills ?? []).includes(skill)">
+                                    {{ skill }}
+                                  </span>
+                                }
+                              </div>
+                            }
+                          }
+                        </div>
+                      </div>
+                      <p class="mt-2 text-xs italic text-gray-600">"{{ item.reason }}"</p>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+
+          <!-- Chat Input -->
+          <div class="pt-6 border-t border-gray-200">
+            <label for="ai-input" class="block text-sm font-medium text-gray-700">{{ t()('ai.refinePrompt') }}</label>
+            <div class="mt-2 flex items-start space-x-3">
+              <textarea id="ai-input" [formControl]="refineControl" (keydown.enter)="refineSuggestion(); $event.preventDefault()" rows="2" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" [placeholder]="t()('ai.refinePlaceholder')"></textarea>
+              <button (click)="refineSuggestion()" [disabled]="!refineControl.value || isRefining()"
+                      class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:bg-indigo-300 disabled:cursor-not-allowed">
+                {{ t()('ai.refineButton') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="text-center h-64 flex flex-col items-center justify-center">
+            <p class="text-gray-600 font-semibold">{{ t()('ai.noSuggestions') }}</p>
+         </div>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div class="p-6 flex-shrink-0 border-t border-gray-200">
+      <div class="flex flex-wrap justify-end gap-4">
+        <button (click)="onClose()" class="px-6 py-2 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-colors">
+          {{ t()('jobDetailsModal.buttons.close') }}
+        </button>
+        <button (click)="onApply()" 
+                [disabled]="isLoading() || isRefining() || error() || !suggestion() || (suggestion()?.approvals?.length ?? 0) === 0"
+                class="px-6 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300 disabled:cursor-not-allowed">
+          {{ t()('ai.applyButton') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (isUserQuickViewOpen() && selectedUserForQuickView()) {
+  <app-user-quick-view-modal
+    [user]="selectedUserForQuickView()!"
+    (close)="closeUserQuickView()">
+  </app-user-quick-view-modal>
+}

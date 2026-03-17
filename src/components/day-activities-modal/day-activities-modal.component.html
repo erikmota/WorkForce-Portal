@@ -1,0 +1,96 @@
+<div class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center transition-opacity duration-300 ease-in-out" (click)="onClose()">
+  <div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl mx-4 transform transition-transform duration-300 ease-in-out scale-100" (click)="$event.stopPropagation()">
+    @if (dayData(); as data) {
+      <div class="p-6">
+        <div class="flex justify-between items-start">
+          <div>
+            <h2 class="text-xl font-bold text-gray-800">{{ t()('dayActivitiesModal.title') }}</h2>
+            <p class="text-lg text-indigo-600 font-semibold">{{ formatDate(data.date) }}</p>
+          </div>
+          <button (click)="onClose()" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        <div class="mt-4 border-t border-gray-200 pt-4 max-h-[60vh] overflow-y-auto">
+          @if (data.slots.length > 0) {
+            <ul class="space-y-3">
+              @for(slot of data.slots; track slot.id) {
+                @let viewStatus = getSlotViewStatus(slot);
+                @let bgColor = getSlotBackgroundColor(slot);
+                <li (click)="onSlotClick(slot)"
+                    class="p-4 border rounded-lg"
+                    [class]="getSlotClasses(slot)"
+                    [style.background-color]="bgColor">
+                  <div>
+                    <p class="font-bold">{{ getSlotDisplayTitle(slot) }}</p>
+                    <p class="text-sm opacity-90">{{ slot.job.companyName }}</p>
+                    <p class="text-sm mt-1 opacity-80">
+                      {{ slot.startTime | date:'shortTime':undefined:translationService.currentLanguage() }} - {{ slot.endTime | date:'shortTime':undefined:translationService.currentLanguage() }}
+                    </p>
+                    @if (slot.requiredSkills && slot.requiredSkills.length > 0 && !isUserAdminFor(slot)) {
+                      <div class="mt-2 flex flex-wrap gap-1">
+                        @let approvedSkill = getApprovedSkill(slot);
+                        @for(skill of slot.requiredSkills; track skill) {
+                          @if (viewStatus.status === 'booked') {
+                            <span class="text-xs font-medium px-2 py-0.5 rounded-full"
+                                  [class.bg-green-100]="skill === approvedSkill"
+                                  [class.text-green-800]="skill === approvedSkill"
+                                  [class.ring-1]="skill === approvedSkill"
+                                  [class.ring-green-300]="skill === approvedSkill"
+                                  [class.bg-gray-100]="skill !== approvedSkill"
+                                  [class.text-gray-700]="skill !== approvedSkill">
+                              {{ skill }}
+                            </span>
+                          } @else {
+                            <span class="text-xs font-medium px-2 py-0.5 rounded-full"
+                                  [class.bg-indigo-100]="userEligibleSkills(slot).includes(skill)"
+                                  [class.text-indigo-800]="userEligibleSkills(slot).includes(skill)"
+                                  [class.bg-gray-100]="!userEligibleSkills(slot).includes(skill)"
+                                  [class.text-gray-700]="!userEligibleSkills(slot).includes(skill)">
+                              {{ skill }}
+                            </span>
+                          }
+                        }
+                      </div>
+                    }
+                    <p class="font-semibold mt-2 text-sm">
+                      {{ viewStatus.text }}
+                    </p>
+
+                    @if (viewStatus.capacityDetails) {
+                      <div class="mt-2 pl-4 border-l-2 border-gray-200">
+                        <ul class="text-xs space-y-1">
+                          @for (detail of viewStatus.capacityDetails; track detail.skill) {
+                            <li class="flex justify-between">
+                              <span class="text-gray-600">{{ detail.skill }}:</span>
+                              <span class="font-medium text-gray-800">{{ detail.capacity - detail.approved }} / {{ detail.capacity }}</span>
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    }
+
+                    @if (isUserAdminFor(slot) && viewStatus.pendingCount > 0) {
+                      <p class="font-semibold text-yellow-700 text-sm mt-1">
+                        {{ t()('jobDetailsModal.pendingHeader') }} ({{ viewStatus.pendingCount }})
+                      </p>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="text-center text-gray-500 py-8">{{ t()('dayActivitiesModal.noActivities') }}</p>
+          }
+        </div>
+        
+        <div class="mt-6 flex justify-end">
+            <button (click)="onClose()" class="px-6 py-2 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-colors">
+              {{ t()('dayActivitiesModal.closeButton') }}
+            </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

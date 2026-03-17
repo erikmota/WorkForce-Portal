@@ -1,0 +1,26 @@
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #report-section, #report-section * {
+    visibility: visible;
+  }
+  #report-section {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    font-size: 10px;
+  }
+  th {
+    background-color: #f2f2f2;
+  }
+}

@@ -1,0 +1,84 @@
+<div class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center transition-opacity duration-300 ease-in-out" (click)="onClose()">
+  <div class="bg-white rounded-lg shadow-2xl w-full max-w-3xl mx-4 flex flex-col max-h-[90vh] transform transition-transform duration-300 ease-in-out scale-100" (click)="$event.stopPropagation()">
+    @if (user(); as currentUser) {
+      <!-- Header -->
+      <div class="p-6 flex-shrink-0 border-b border-gray-200">
+        <div class="flex justify-between items-start">
+          <div class="flex items-center space-x-4">
+             @if (currentUser.profilePictureUrl) {
+              <img class="w-16 h-16 rounded-full object-cover" [src]="currentUser.profilePictureUrl" [alt]="currentUser.name">
+            } @else {
+              <span class="inline-block h-16 w-16 overflow-hidden rounded-full bg-gray-200">
+                <svg class="h-full w-full text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 20.993V24H0v-2.997A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </span>
+            }
+            <div>
+              <h2 class="text-2xl font-bold text-gray-800">{{ currentUser.name }}</h2>
+              <p class="text-sm text-gray-500">{{ currentUser.username }}</p>
+              @if (currentUser.phone) {
+                <p class="text-sm text-gray-500 mt-1">{{ currentUser.phone }}</p>
+              }
+            </div>
+          </div>
+          <button (click)="onClose()" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Scrollable Content -->
+      <div class="p-6 overflow-y-auto space-y-6">
+        <!-- Overall Summary -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-700">{{ t()('userQuickView.summary') }}</h3>
+          <div class="mt-2 grid grid-cols-2 gap-4">
+            <div class="bg-green-50 p-4 rounded-lg text-center">
+              <p class="text-3xl font-bold text-green-700">{{ totalApproved() }}</p>
+              <p class="text-sm font-medium text-green-600">{{ t()('userQuickView.approved') }}</p>
+            </div>
+            <div class="bg-blue-50 p-4 rounded-lg text-center">
+              <p class="text-3xl font-bold text-blue-700">{{ currentUser.dailyRate | currency:'BRL':'symbol':'1.2-2' }}</p>
+              <p class="text-sm font-medium text-blue-600">{{ t()('profileModal.dailyRate') }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skills & Performance -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-700">{{ t()('userQuickView.skillsAndPerformance') }}</h3>
+           @if (allUserSkills().length > 0) {
+            <ul class="mt-2 space-y-3">
+              @for(skill of allUserSkills(); track skill) {
+                @let stats = statsBySkill()[skill];
+                <li class="p-3 bg-gray-50 rounded-md border border-gray-200">
+                  <p class="font-semibold text-gray-800">{{ skill }}</p>
+                  @if (stats.approved > 0) {
+                    <div class="flex items-center space-x-4 mt-1 text-sm">
+                      <span class="text-green-600 flex items-center">
+                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 mr-1"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.052-.143z" clip-rule="evenodd" /></svg>
+                        {{ stats.approved }} {{ t()('userQuickView.approved') }}
+                      </span>
+                    </div>
+                  } @else {
+                     <p class="text-xs text-gray-500 mt-1">{{ t()('userQuickView.noHistory') }}</p>
+                  }
+                </li>
+              }
+            </ul>
+           } @else {
+             <p class="mt-2 text-sm text-gray-500">{{ t()('userQuickView.noSkills') }}</p>
+           }
+        </div>
+      </div>
+      
+       <!-- Footer -->
+      <div class="p-6 flex justify-end border-t border-gray-200 flex-shrink-0">
+        <button (click)="onClose()" class="px-6 py-2 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-colors">
+          {{ t()('userQuickView.closeButton') }}
+        </button>
+      </div>
+    }
+  </div>
+</div>

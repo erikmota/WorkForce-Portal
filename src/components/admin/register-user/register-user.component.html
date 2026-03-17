@@ -1,0 +1,369 @@
+<div class="px-4 sm:px-0 space-y-12">
+  <!-- Registration/Edit Form -->
+  <div>
+    <h2 class="text-2xl font-bold tracking-tight text-gray-900">{{ formTitle() }}</h2>
+    <div class="mt-4 p-6 bg-white shadow-lg rounded-lg">
+      <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        @if (editingUser(); as user) {
+          <div class="space-y-6 border-b border-gray-200 pb-8">
+            <h3 class="text-base font-semibold leading-7 text-gray-900">{{ t()('registerUser.personalInformation') }}</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                  <label for="name" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.name') }}</label>
+                  <input type="text" id="name" formControlName="name" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  @if (userForm.get('name')?.hasError('required') && userForm.get('name')?.touched) {
+                  <p class="mt-1 text-sm text-red-600">{{ t()('registerUser.nameError') }}</p>
+                  }
+              </div>
+              <div>
+                  <label for="username" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.username') }}</label>
+                  <input type="email" id="username" formControlName="username" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  @if (userForm.get('username')?.hasError('email') && userForm.get('username')?.touched) {
+                  <p class="mt-1 text-sm text-red-600">{{ t()('registerUser.emailError') }}</p>
+                  }
+              </div>
+              <div>
+                  <label for="phone" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.phone') }}</label>
+                  <input type="tel" id="phone" formControlName="phone" (input)="formatPhoneNumber($event)" placeholder="(XX) XXXXX-XXXX" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+              </div>
+              <div>
+                  <label for="dailyRate" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.dailyRate') }}</label>
+                  <input type="number" id="dailyRate" formControlName="dailyRate" min="0" placeholder="150.00" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                   <p class="mt-1 text-xs text-gray-500">{{ t()('registerUser.dailyRateHelp') }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-6 border-b border-gray-200 pb-8" formGroupName="address">
+              <h3 class="text-base font-semibold leading-7 text-gray-900">{{ t()('registerUser.address') }}</h3>
+              <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                  <div class="sm:col-span-4">
+                      <label for="street" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.street') }}</label>
+                      <input type="text" id="street" formControlName="street" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  </div>
+                  <div class="sm:col-span-2">
+                      <label for="number" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.number') }}</label>
+                      <input type="text" id="number" formControlName="number" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  </div>
+                  <div class="col-span-full">
+                      <label for="complement" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.complement') }}</label>
+                      <input type="text" id="complement" formControlName="complement" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  </div>
+                  <div class="sm:col-span-2">
+                      <label for="neighborhood" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.neighborhood') }}</label>
+                      <input type="text" id="neighborhood" formControlName="neighborhood" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  </div>
+                  <div class="sm:col-span-2">
+                      <label for="city" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.city') }}</label>
+                      <input type="text" id="city" formControlName="city" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  </div>
+                  <div class="sm:col-span-1">
+                      <label for="state" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.state') }}</label>
+                      <input type="text" id="state" formControlName="state" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  </div>
+                  <div class="sm:col-span-1">
+                      <label for="zipCode" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.zipCode') }}</label>
+                      <input type="text" id="zipCode" formControlName="zipCode" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  </div>
+              </div>
+          </div>
+          <div class="space-y-6 border-b border-gray-200 pb-8" formGroupName="bankDetails">
+              <h3 class="text-base font-semibold leading-7 text-gray-900">{{ t()('registerUser.bankDetails') }}</h3>
+              <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                  <div class="sm:col-span-3">
+                      <label for="bank" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.bank') }}</label>
+                      <input type="text" id="bank" formControlName="bank" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  </div>
+                  <div class="sm:col-span-1">
+                      <label for="agency" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.agency') }}</label>
+                      <input type="text" id="agency" formControlName="agency" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  </div>
+                  <div class="sm:col-span-2">
+                      <label for="account" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.account') }}</label>
+                      <input type="text" id="account" formControlName="account" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  </div>
+                  <div class="sm:col-span-full">
+                      <label for="pixKey" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.pixKey') }}</label>
+                      <input type="text" id="pixKey" formControlName="pixKey" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                  </div>
+              </div>
+          </div>
+        } @else {
+          <div class="space-y-6 border-b border-gray-200 pb-8">
+            <h3 class="text-base font-semibold leading-7 text-gray-900">{{ t()('registerUser.invitationDetails') }}</h3>
+            <div class="max-w-md">
+              <label for="username" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.username') }}</label>
+              <input type="email" id="username" formControlName="username" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+              @if (userForm.get('username')?.hasError('email') && userForm.get('username')?.touched) {
+                <p class="mt-1 text-sm text-red-600">{{ t()('registerUser.emailError') }}</p>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="space-y-6">
+             <h3 class="text-base font-semibold leading-7 text-gray-900">{{ t()('registerUser.rolesAndPermissions') }}</h3>
+            @if (authService.isCurrentUserGlobalAdmin()) {
+                <div class="flex items-center space-x-3">
+                <input id="isGlobalAdmin" type="checkbox" formControlName="isGlobalAdmin" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                <div>
+                    <label for="isGlobalAdmin" class="font-medium text-gray-700">{{ t()('registerUser.globalAdmin') }}</label>
+                    <p class="text-xs text-gray-500">{{ t()('registerUser.globalAdminHelp') }}</p>
+                </div>
+                </div>
+            }
+            
+            @if (!userForm.get('isGlobalAdmin')?.value) {
+                <fieldset>
+                <legend class="text-sm font-medium text-gray-700">{{ t()('registerUser.associatedCompanies') }}</legend>
+                <div class="mt-2 space-y-2">
+                    @for(company of availableCompanies(); track company.id) {
+                    <div class="relative flex items-start">
+                        <div class="flex h-5 items-center">
+                        <input [id]="'company-' + company.id" type="checkbox"
+                                [checked]="isCompanySelected(company.id)"
+                                (change)="onCompanyChange($event, company.id)"
+                                class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        </div>
+                        <div class="ml-3 text-sm">
+                        <label [for]="'company-' + company.id" class="font-medium text-gray-700">{{ company.name }}</label>
+                        </div>
+                    </div>
+                    }
+                </div>
+                @if (userForm.get('companyIds')?.hasError('required') && userForm.get('companyIds')?.touched) {
+                    <p class="mt-2 text-sm text-red-600">{{ t()('registerUser.companyError') }}</p>
+                }
+                </fieldset>
+            }
+
+            @if (userForm.get('companyIds')?.value?.length) {
+                <div class="space-y-6">
+                @for(companyId of userForm.get('companyIds')?.value; track companyId) {
+                    @let company = getCompanyById(companyId);
+                    @if (company) {
+                    <div class="p-4 border rounded-lg space-y-4">
+                        <h3 class="font-medium text-gray-900">{{ company.name }}</h3>
+                        
+                        <!-- Role & Status -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label [for]="'role-' + company.id" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.role') }}</label>
+                                <select [id]="'role-' + company.id" 
+                                        [value]="companyRoles()[company.id] || 'user'"
+                                        (change)="updateCompanyRole(company.id, $any($event.target).value)"
+                                        class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                    <option value="user">{{ t()('registerUser.roles.user') }}</option>
+                                    <option value="company-admin">{{ t()('registerUser.roles.companyAdmin') }}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label [for]="'status-' + company.id" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.status') }}</label>
+                                <select [id]="'status-' + company.id" 
+                                        [value]="companyStatuses()[company.id] || 'active'"
+                                        (change)="updateCompanyStatus(company.id, $any($event.target).value)"
+                                        class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                    <option value="active">{{ t()('registerUser.statusValues.active') }}</option>
+                                    <option value="inactive">{{ t()('registerUser.statusValues.inactive') }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Skills -->
+                        @if(companyRoles()[company.id] === 'user') {
+                            <div>
+                                <fieldset>
+                                    <legend class="text-sm font-medium text-gray-700">{{ t()('registerUser.skills') }}</legend>
+                                    @let companySkills = getSkillsForCompany(company.id);
+                                    @if (companySkills.length > 0) {
+                                        <div class="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2">
+                                            @for(skill of companySkills; track skill.id) {
+                                                <div class="relative flex items-start">
+                                                    <div class="flex h-5 items-center">
+                                                        <input [id]="'skill-' + skill.id" type="checkbox"
+                                                            [checked]="selectedSkills()[company.id]?.[skill.name]"
+                                                            (change)="onSkillChange(company.id, skill.name, $any($event.target).checked)"
+                                                            class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                                    </div>
+                                                    <div class="ml-3 text-sm">
+                                                        <label [for]="'skill-' + skill.id" class="font-medium text-gray-700">{{ skill.name }}</label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    } @else {
+                                        <p class="text-sm text-gray-500 mt-2">{{ t()('manageSkills.noSkills') }}</p>
+                                    }
+                                </fieldset>
+                            </div>
+                        }
+                    </div>
+                    }
+                }
+                </div>
+            }
+        </div>
+        
+        <div class="flex items-center justify-end space-x-4 pt-4">
+           @if (userForm.hasError('skillRequired') && (userForm.touched || userForm.dirty)) {
+            <p class="text-sm text-red-600 self-center mr-auto">{{ t()('registerUser.skillRequiredError') }}</p>
+          }
+          @if (editingUser()) {
+            <button type="button" (click)="cancelEdit()" class="px-6 py-2 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-colors">
+              {{ t()('registerUser.buttons.cancel') }}
+            </button>
+          }
+          <button type="submit" [disabled]="userForm.invalid" class="px-6 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300">
+            {{ submitButtonText() }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Users List -->
+  <div>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold tracking-tight text-gray-900">{{ t()('registerUser.existingUsers') }} ({{ visibleUsers().length }})</h2>
+      <button (click)="isFilterPanelVisible.set(!isFilterPanelVisible())" type="button" class="relative inline-flex items-center gap-x-2 rounded-md px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors"
+        [class.bg-white]="!areFiltersActive()"
+        [class.hover:bg-gray-50]="!areFiltersActive()"
+        [class.bg-indigo-100]="areFiltersActive()"
+        [class.hover:bg-indigo-200]="areFiltersActive()">
+        @if (areFiltersActive()) {
+          <span class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-indigo-600 ring-2 ring-white"></span>
+        }
+        <svg class="h-5 w-5" [class.text-indigo-600]="areFiltersActive()" [class.text-gray-400]="!areFiltersActive()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.59L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clip-rule="evenodd" />
+        </svg>
+        @if (isFilterPanelVisible()) {
+          <span>{{ t()('registerUser.filters.hide') }}</span>
+        } @else {
+          <span>{{ t()('registerUser.filters.show') }}</span>
+        }
+      </button>
+    </div>
+
+    <!-- Filter Panel -->
+    @if (isFilterPanelVisible()) {
+      <div class="mb-4 p-4 bg-gray-50 shadow rounded-lg border border-gray-200">
+        <form [formGroup]="filterForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+          <div>
+            <label for="filter-name" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.filters.name') }}</label>
+            <input type="text" id="filter-name" formControlName="name" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+          </div>
+          <div>
+            <label for="filter-username" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.filters.username') }}</label>
+            <input type="text" id="filter-username" formControlName="username" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+          </div>
+          <div>
+            <label for="filter-status" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.filters.status') }}</label>
+            <select id="filter-status" formControlName="status" class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+              <option value="all">{{ t()('registerUser.filters.allStatuses') }}</option>
+              <option value="active">{{ t()('registerUser.statusValues.active') }}</option>
+              <option value="inactive">{{ t()('registerUser.statusValues.inactive') }}</option>
+              <option value="invited">{{ t()('registerUser.statusValues.invited') }}</option>
+            </select>
+          </div>
+          <div>
+            <label for="filter-company-user" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.filters.company') }}</label>
+            <select id="filter-company-user" formControlName="companyId" class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+              <option value="all">{{ t()('registerUser.filters.allCompanies') }}</option>
+              @for(company of availableCompanies(); track company.id) {
+                <option [value]="company.id">{{ company.name }}</option>
+              }
+            </select>
+          </div>
+           <div>
+            <label for="filter-skill-user" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.filters.skill') }}</label>
+            <select id="filter-skill-user" formControlName="skill" class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+              <option value="all">{{ t()('registerUser.filters.allSkills') }}</option>
+              @for(skill of allAvailableSkills(); track skill.id) {
+                <option [value]="skill.name">{{ skill.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="lg:col-start-3">
+            <button (click)="resetFilters()" type="button" class="w-full inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">{{ t()('registerUser.filters.reset') }}</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    @if (visibleUsers().length > 0) {
+      <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+        <ul role="list" class="divide-y divide-gray-200">
+          @for (user of visibleUsers(); track user.id) {
+            <li class="px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between hover:bg-gray-50">
+              <div class="flex-grow">
+                <div class="flex items-center gap-3">
+                    <p class="font-semibold text-gray-800">{{ user.name }}</p>
+                </div>
+                <div class="mt-2 text-xs text-gray-500 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                  <p>
+                    <strong>{{ t()('registerUser.username') }}:</strong> <span class="font-medium text-gray-700">{{ user.username }}</span>
+                  </p>
+                  @if (user.phone) {
+                    <p>
+                      <strong>{{ t()('registerUser.phoneLabel') }}:</strong> <span class="font-medium text-gray-700">{{ user.phone }}</span>
+                    </p>
+                  }
+                   @if (user.isGlobalAdmin) {
+                     <p class="sm:col-span-2">
+                        <strong>{{ t()('registerUser.role') }}:</strong> 
+                        <span class="font-medium text-purple-700">{{ t()('registerUser.roles.admin') }}</span>
+                     </p>
+                   } @else {
+                     <div class="sm:col-span-2">
+                        <strong class="block mb-1">{{ t()('registerUser.companiesLabel') }}</strong>
+                        <div class="flex flex-wrap gap-x-4 gap-y-3">
+                          @for(detail of getCompanyDetails(user); track detail.name) {
+                            <div class="flex flex-col gap-1">
+                              <span class="text-xs font-medium px-2 py-1 rounded-full w-fit"
+                                  [class.bg-green-100]="detail.status === 'active'"
+                                  [class.text-green-800]="detail.status === 'active'"
+                                  [class.bg-red-100]="detail.status === 'inactive'"
+                                  [class.text-red-800]="detail.status === 'inactive'"
+                                  [class.bg-blue-100]="detail.status === 'invited'"
+                                  [class.text-blue-800]="detail.status === 'invited'">
+                                  {{ detail.name }} @if(detail.role !== '-'){ ({{ detail.role }}) }
+                              </span>
+                              @if (detail.skills.length > 0) {
+                                <div class="flex flex-wrap gap-1">
+                                  @for(skill of detail.skills; track skill) {
+                                    <span class="inline-flex items-center rounded-md bg-indigo-50 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
+                                      {{ skill }}
+                                    </span>
+                                  }
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+                     </div>
+                   }
+                </div>
+              </div>
+              <div class="mt-4 sm:mt-0 flex-shrink-0 flex items-center space-x-2 self-start sm:self-center">
+                @if (user.needsOnboarding) {
+                  <button (click)="resendInvitation(user)" class="px-3 py-1 text-sm rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200 font-semibold transition-colors">
+                    {{ t()('registerUser.resendInvitationButton') }}
+                  </button>
+                  <button (click)="resetPassword(user)" class="px-3 py-1 text-sm rounded-md text-orange-600 bg-orange-100 hover:bg-orange-200 font-semibold transition-colors">
+                    {{ t()('registerUser.buttons.resetPassword') }}
+                  </button>
+                }
+                <button (click)="editUser(user)" class="px-3 py-1 text-sm rounded-md text-indigo-600 bg-indigo-100 hover:bg-indigo-200 font-semibold transition-colors">
+                  {{ t()('manageCompanies.editButton') }}
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      </div>
+    } @else {
+      <div class="mt-4 p-6 bg-white shadow-lg rounded-lg">
+        <p class="text-gray-600 text-center">{{ t()('registerUser.noUsersFound') }}</p>
+      </div>
+    }
+  </div>
+</div>

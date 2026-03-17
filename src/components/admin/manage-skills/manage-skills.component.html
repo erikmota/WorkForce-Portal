@@ -1,0 +1,132 @@
+<div class="px-4 sm:px-0 space-y-12">
+  <!-- Registration/Edit Form -->
+  <div>
+    <h2 class="text-2xl font-bold tracking-tight text-gray-900">{{ title() }}</h2>
+    <div class="mt-4 p-6 bg-white shadow-lg rounded-lg">
+      <form [formGroup]="skillForm" (ngSubmit)="onSubmit()" class="space-y-6 max-w-lg">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+          <div>
+            <label for="companyId" class="block text-sm font-medium text-gray-700">{{ t()('manageSkills.company') }}</label>
+            @if (showCompanyDropdown()) {
+              <select id="companyId" formControlName="companyId" class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100">
+                <option [value]="null" disabled>{{ t()('manageSkills.selectCompany') }}</option>
+                @for(company of availableCompanies(); track company.id) {
+                  <option [value]="company.id">{{ company.name }}</option>
+                }
+              </select>
+            } @else if (availableCompanies().length > 0) {
+              <p class="mt-1 block w-full rounded-md border-gray-200 bg-gray-100 shadow-sm sm:text-sm px-3 py-2 text-gray-700">
+                {{ availableCompanies()[0].name }}
+              </p>
+            }
+          </div>
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-700">{{ t()('manageSkills.skillName') }}</label>
+            <input type="text" id="name" formControlName="name" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+            @if (skillForm.get('name')?.invalid && skillForm.get('name')?.touched) {
+                <p class="mt-1 text-sm text-red-600">{{ t()('manageSkills.skillNameError') }}</p>
+            }
+          </div>
+        </div>
+        
+        <div class="flex justify-end space-x-2 pt-4 border-t border-gray-200">
+           @if (editingSkill()) {
+            <button type="button" (click)="cancelEdit()" class="px-6 py-2 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-colors">
+              {{ t()('manageSkills.buttons.cancel') }}
+            </button>
+          }
+          <button type="submit" [disabled]="skillForm.invalid" class="px-6 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300">
+            @if(editingSkill()) {
+              <span>{{ t()('manageSkills.buttons.update') }}</span>
+            } @else {
+              <span>{{ t()('manageSkills.buttons.create') }}</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Skills List -->
+  <div>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold tracking-tight text-gray-900">{{ t()('manageSkills.existingSkills') }}</h2>
+      <button (click)="isFilterPanelVisible.set(!isFilterPanelVisible())" type="button" class="relative inline-flex items-center gap-x-2 rounded-md px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors"
+        [class.bg-white]="!areFiltersActive()"
+        [class.hover:bg-gray-50]="!areFiltersActive()"
+        [class.bg-indigo-100]="areFiltersActive()"
+        [class.hover:bg-indigo-200]="areFiltersActive()">
+        @if (areFiltersActive()) {
+          <span class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-indigo-600 ring-2 ring-white"></span>
+        }
+        <svg class="h-5 w-5" [class.text-indigo-600]="areFiltersActive()" [class.text-gray-400]="!areFiltersActive()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.59L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clip-rule="evenodd" />
+        </svg>
+        @if (isFilterPanelVisible()) {
+          <span>{{ t()('manageSkills.filters.hide') }}</span>
+        } @else {
+          <span>{{ t()('manageSkills.filters.show') }}</span>
+        }
+      </button>
+    </div>
+
+    <!-- Filter Panel -->
+    @if (isFilterPanelVisible()) {
+      <div class="mb-4 p-4 bg-gray-50 shadow rounded-lg border border-gray-200">
+        <form [formGroup]="filterForm" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+          <div class="sm:col-span-1">
+            <label for="filter-skill-name" class="block text-sm font-medium text-gray-700">{{ t()('manageSkills.filters.name') }}</label>
+            <input type="text" id="filter-skill-name" formControlName="name" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+          </div>
+          <div class="sm:col-span-1">
+            <label for="filter-company" class="block text-sm font-medium text-gray-700">{{ t()('manageSkills.filters.company') }}</label>
+            <select id="filter-company" formControlName="companyId" class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+              <option value="all">{{ t()('manageSkills.filters.allCompanies') }}</option>
+              @for(company of availableCompanies(); track company.id) {
+                <option [value]="company.id">{{ company.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="self-end">
+            <button (click)="resetFilters()" type="button" class="w-full inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">{{ t()('manageSkills.filters.reset') }}</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    @if (visibleSkills().length > 0) {
+      <div class="mt-4 bg-white shadow-lg rounded-lg overflow-hidden">
+        <ul role="list" class="divide-y divide-gray-200">
+          @for (skill of visibleSkills(); track skill.id) {
+            <li class="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
+              <div>
+                <p class="font-semibold text-gray-800">{{ skill.name }}</p>
+                <p class="text-sm text-indigo-600">{{ getCompanyName(skill.companyId) }}</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button (click)="editSkill(skill)" class="px-3 py-1 text-sm rounded-md text-indigo-600 bg-indigo-100 hover:bg-indigo-200 font-semibold transition-colors">
+                  {{ t()('manageSkills.editButton') }}
+                </button>
+                <button (click)="deleteSkill(skill)" class="px-3 py-1 text-sm rounded-md text-white bg-red-600 hover:bg-red-700 font-semibold transition-colors">
+                    {{ t()('manageSkills.deleteButton') }}
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      </div>
+    } @else {
+      <div class="mt-4 p-6 bg-white shadow-lg rounded-lg">
+        <p class="text-gray-600 text-center">{{ t()('manageSkills.noSkillsFound') }}</p>
+      </div>
+    }
+  </div>
+</div>
+
+@if (skillToDelete(); as skill) {
+  <app-confirmation-modal
+    [message]="t()('confirmationModal.messages.removeSkill', { name: skill.name })"
+    (confirm)="confirmDeleteSkill()"
+    (cancel)="skillToDelete.set(null)">
+  </app-confirmation-modal>
+}

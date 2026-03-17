@@ -1,0 +1,329 @@
+<div class="p-4 sm:p-6 lg:p-8">
+  <div>
+    <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
+      <div class="flex items-center space-x-4">
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">{{ calendarHeader() }}</h1>
+        <div class="flex items-center rounded-md shadow-sm border border-gray-300">
+          <button (click)="calendarViewMode() === 'monthly' ? goToPreviousMonth() : goToPreviousWeek()" type="button" class="relative inline-flex items-center rounded-l-md bg-white px-2 py-2 text-gray-400 hover:bg-gray-50 focus:z-10">
+            <span class="sr-only">{{ calendarViewMode() === 'monthly' ? t()('calendar.previousMonth') : t()('calendar.previousWeek') }}</span>
+            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <button (click)="goToToday()" type="button" class="relative inline-flex items-center bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 focus:z-10 border-x border-gray-300">{{ t()('calendar.today') }}</button>
+          <button (click)="calendarViewMode() === 'monthly' ? goToNextMonth() : goToNextWeek()" type="button" class="relative inline-flex items-center rounded-r-md bg-white px-2 py-2 text-gray-400 hover:bg-gray-50 focus:z-10">
+            <span class="sr-only">{{ calendarViewMode() === 'monthly' ? t()('calendar.nextMonth') : t()('calendar.nextWeek') }}</span>
+            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      </div>
+       <div>
+        <span class="isolate inline-flex rounded-md shadow-sm">
+          <button type="button" (click)="setViewMode('hourly')" 
+                  class="relative inline-flex items-center rounded-l-md px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-10 transition-colors"
+                  [class.bg-indigo-600]="calendarViewMode() === 'hourly'"
+                  [class.text-white]="calendarViewMode() === 'hourly'"
+                  [class.bg-white]="calendarViewMode() !== 'hourly'"
+                  [class.text-gray-900]="calendarViewMode() !== 'hourly'"
+                  [class.hover:bg-gray-50]="calendarViewMode() !== 'hourly'">
+            {{ t()('calendar.byHour') }}
+          </button>
+          <button type="button" (click)="setViewMode('daily')"
+                  class="relative -ml-px inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-10 transition-colors"
+                  [class.bg-indigo-600]="calendarViewMode() === 'daily'"
+                  [class.text-white]="calendarViewMode() === 'daily'"
+                  [class.bg-white]="calendarViewMode() !== 'daily'"
+                  [class.text-gray-900]="calendarViewMode() !== 'daily'"
+                  [class.hover:bg-gray-50]="calendarViewMode() !== 'daily'">
+            {{ t()('calendar.byDay') }}
+          </button>
+          <button type="button" (click)="setViewMode('monthly')"
+                  class="relative -ml-px inline-flex items-center rounded-r-md px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-10 transition-colors"
+                  [class.bg-indigo-600]="calendarViewMode() === 'monthly'"
+                  [class.text-white]="calendarViewMode() === 'monthly'"
+                  [class.bg-white]="calendarViewMode() !== 'monthly'"
+                  [class.text-gray-900]="calendarViewMode() !== 'monthly'"
+                  [class.hover:bg-gray-50]="calendarViewMode() !== 'monthly'">
+            {{ t()('calendar.byMonth') }}
+          </button>
+        </span>
+      </div>
+    </div>
+    
+    <!-- Hourly View -->
+    @if (calendarViewMode() === 'hourly') {
+      <div class="bg-white shadow-lg rounded-lg overflow-x-auto">
+        <div class="grid min-w-[900px]" style="grid-template-columns: 0.75fr repeat(7, 1fr);">
+          <!-- Time column header -->
+          <div class="border-r border-b border-gray-200 p-4 text-center font-semibold text-gray-600 bg-gray-50">{{ t()('calendar.time') }}</div>
+          
+          <!-- Day headers -->
+          @for (day of calendarDays(); track day.date; let i = $index) {
+            <div class="border-b border-l border-gray-200 p-4 text-center font-semibold relative" [class.bg-indigo-100]="day.isToday">
+              @if(day.isToday) { <div class="absolute top-0 left-0 right-0 h-1 bg-indigo-500"></div> }
+              <span class="text-gray-900" [class.text-indigo-600]="day.isToday" [class.font-bold]="day.isToday">{{ t()('calendar.dayNames')[i] }}</span>
+              <span class="block text-sm" [class.text-indigo-600]="day.isToday" [class.text-gray-500]="!day.isToday" [class.font-bold]="day.isToday">{{ day.date | date:'MMM d':undefined:translationService.currentLanguage() }}</span>
+            </div>
+          }
+
+          <!-- Time slots rows -->
+          @for (hour of hours(); track hour) {
+            <!-- Time label column -->
+            <div class="border-r border-t border-gray-200 p-4 flex items-center justify-center font-medium text-sm text-gray-500">
+              {{ formatTime(hour) }}
+            </div>
+            
+            <!-- Day cells for this hour -->
+            @for (day of calendarDays(); track day.date) {
+              <div class="border-t border-l border-gray-200 p-1 text-xs min-h-[100px] h-32 overflow-y-auto" [class.bg-indigo-50]="day.isToday">
+                @let slots = getSlotsForHour(day, hour);
+                @if (slots.length > 0) {
+                  <div class="flex flex-col space-y-1">
+                    @for (slot of slots; track slot.id) {
+                      @let viewStatus = getSlotViewStatus(slot);
+                      @let bgColor = getSlotBackgroundColor(slot);
+                      <div class="p-2 rounded-md text-left" 
+                           [class]="getSlotClasses(slot)" 
+                           [style.background-color]="bgColor"
+                           (click)="selectSlot(slot)">
+                          <p class="font-bold truncate">{{ getSlotDisplayTitle(slot) }}</p>
+                          <p class="truncate">{{ slot.job.companyName }}</p>
+                          @if (slot.requiredSkills && slot.requiredSkills.length > 0 && !isUserAdminFor(slot)) {
+                            <div class="mt-1 flex flex-wrap gap-1">
+                              @let approvedSkill = getApprovedSkill(slot);
+                              @for(skill of slot.requiredSkills; track skill) {
+                                @if (viewStatus.status === 'booked') {
+                                  <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+                                        [class.bg-green-100]="skill === approvedSkill"
+                                        [class.text-green-800]="skill === approvedSkill"
+                                        [class.ring-1]="skill === approvedSkill"
+                                        [class.ring-green-300]="skill === approvedSkill"
+                                        [class.bg-gray-100]="skill !== approvedSkill"
+                                        [class.text-gray-700]="skill !== approvedSkill">
+                                      {{ skill }}
+                                  </span>
+                                } @else {
+                                  <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+                                        [class.bg-indigo-100]="userEligibleSkills(slot).includes(skill)"
+                                        [class.text-indigo-800]="userEligibleSkills(slot).includes(skill)"
+                                        [class.bg-gray-100]="!userEligibleSkills(slot).includes(skill)"
+                                        [class.text-gray-700]="!userEligibleSkills(slot).includes(skill)">
+                                      {{ skill }}
+                                  </span>
+                                }
+                              }
+                            </div>
+                          }
+                          <p class="font-semibold mt-1 text-[11px]"
+                            [class.text-green-800]="viewStatus.status === 'booked'"
+                            [class.text-gray-600]="viewStatus.status === 'full'"
+                            [class.text-yellow-700]="viewStatus.status === 'pending'"
+                            [class.text-blue-800]="viewStatus.status === 'available' && !isUserAdminFor(slot)"
+                            [class.opacity-80]="viewStatus.status === 'available' && isUserAdminFor(slot)">
+                            {{ viewStatus.text }}
+                          </p>
+                          @if (isUserAdminFor(slot) && viewStatus.pendingCount > 0) {
+                            <p class="font-semibold text-yellow-700 text-[11px] mt-1">
+                              {{ t()('jobDetailsModal.pendingHeader') }} ({{ viewStatus.pendingCount }})
+                            </p>
+                          }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Daily View -->
+    @if (calendarViewMode() === 'daily') {
+      <div class="bg-white shadow-lg rounded-lg overflow-x-auto">
+        <div class="grid grid-cols-7 min-w-[700px]">
+          <!-- Day headers -->
+          @for (day of calendarDays(); track day.date; let i = $index) {
+            <div class="border-b border-gray-200 p-4 text-center font-semibold relative" 
+                 [class.bg-indigo-100]="day.isToday"
+                 [class.border-l]="i > 0">
+              @if(day.isToday) { <div class="absolute top-0 left-0 right-0 h-1 bg-indigo-500"></div> }
+              <span class="text-gray-900" [class.text-indigo-600]="day.isToday" [class.font-bold]="day.isToday">{{ t()('calendar.dayNames')[i] }}</span>
+              <span class="block text-sm" [class.text-indigo-600]="day.isToday" [class.text-gray-500]="!day.isToday" [class.font-bold]="day.isToday">{{ day.date | date:'MMM d':undefined:translationService.currentLanguage() }}</span>
+            </div>
+          }
+        </div>
+        <div class="grid grid-cols-7 min-h-[500px] min-w-[700px]">
+          <!-- Day content cells -->
+          @for (day of calendarDays(); track day.date; let i = $index) {
+            <div class="p-2 overflow-y-auto h-[60vh] transition-colors" 
+              [class.border-l]="i > 0"
+              [class.bg-indigo-50]="day.isToday"
+              [class.cursor-pointer]="day.slots.length > 0"
+              [class.hover:bg-gray-50]="!day.isToday"
+              [class.hover:bg-indigo-100]="day.isToday"
+              (click)="openDayPopup(day)">
+              <div class="flex flex-col space-y-2">
+                @if (day.slots.length > 0) {
+                  @for (slot of day.slots; track slot.id) {
+                    @let viewStatus = getSlotViewStatus(slot);
+                    @let bgColor = getSlotBackgroundColor(slot);
+                    <div class="p-2 rounded-md text-left" 
+                         [class]="getSlotClasses(slot)" 
+                         [style.background-color]="bgColor"
+                         (click)="selectSlot(slot); $event.stopPropagation()">
+                        <p class="font-bold text-xs truncate">{{ getSlotDisplayTitle(slot) }}</p>
+                        <p class="text-xs truncate">{{ slot.job.companyName }}</p>
+                        @if (slot.requiredSkills && slot.requiredSkills.length > 0 && !isUserAdminFor(slot)) {
+                            <div class="mt-1 flex flex-wrap gap-1">
+                                @let approvedSkill = getApprovedSkill(slot);
+                                @for(skill of slot.requiredSkills; track skill) {
+                                  @if (viewStatus.status === 'booked') {
+                                    <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+                                          [class.bg-green-100]="skill === approvedSkill"
+                                          [class.text-green-800]="skill === approvedSkill"
+                                          [class.ring-1]="skill === approvedSkill"
+                                          [class.ring-green-300]="skill === approvedSkill"
+                                          [class.bg-gray-100]="skill !== approvedSkill"
+                                          [class.text-gray-700]="skill !== approvedSkill">
+                                        {{ skill }}
+                                    </span>
+                                  } @else {
+                                    <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+                                          [class.bg-indigo-100]="userEligibleSkills(slot).includes(skill)"
+                                          [class.text-indigo-800]="userEligibleSkills(slot).includes(skill)"
+                                          [class.bg-gray-100]="!userEligibleSkills(slot).includes(skill)"
+                                          [class.text-gray-700]="!userEligibleSkills(slot).includes(skill)">
+                                        {{ skill }}
+                                    </span>
+                                  }
+                                }
+                            </div>
+                        }
+                        <p class="text-xs font-medium mt-1" [class.opacity-70]="viewStatus.status === 'available'">
+                          {{ slot.startTime | date:'shortTime':undefined:translationService.currentLanguage() }} - {{ slot.endTime | date:'shortTime':undefined:translationService.currentLanguage() }}
+                        </p>
+                        <p class="font-semibold mt-1 text-[11px]"
+                          [class.text-green-800]="viewStatus.status === 'booked'"
+                          [class.text-gray-600]="viewStatus.status === 'full'"
+                          [class.text-yellow-700]="viewStatus.status === 'pending'"
+                          [class.text-blue-800]="viewStatus.status === 'available' && !isUserAdminFor(slot)"
+                          [class.opacity-80]="viewStatus.status === 'available' && isUserAdminFor(slot)">
+                          {{ viewStatus.text }}
+                        </p>
+                        @if (isUserAdminFor(slot) && viewStatus.pendingCount > 0) {
+                          <p class="font-semibold text-yellow-700 text-[11px] mt-1">
+                            {{ t()('jobDetailsModal.pendingHeader') }} ({{ viewStatus.pendingCount }})
+                          </p>
+                        }
+                    </div>
+                  }
+                } @else {
+                  <div class="flex items-center justify-center h-full pt-10">
+                    <p class="text-xs text-gray-400">{{ t()('calendar.noActivities') }}</p>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+    
+    <!-- Monthly View -->
+    @if (calendarViewMode() === 'monthly') {
+      <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+        <div class="grid grid-cols-7 text-center font-semibold text-gray-600 border-b border-gray-200">
+          @for(dayName of t()('calendar.dayNames'); track dayName) {
+            <div class="py-3 border-l border-gray-200 first:border-l-0">{{dayName}}</div>
+          }
+        </div>
+        <div class="grid grid-cols-7 grid-rows-6">
+          @for(week of monthDaysGrid(); track week[0].date) {
+            @for(day of week; track day.date; let dayIndex = $index) {
+              <div class="relative border-t border-l border-gray-200 p-2 h-32 sm:h-36 overflow-y-auto transition-colors" 
+                  [class.border-l-0]="dayIndex === 0"
+                  [class.bg-gray-50]="!day.isCurrentMonth" 
+                  [class.bg-indigo-50]="day.isToday"
+                  [class.cursor-pointer]="day.slots.length > 0"
+                  [class.hover:bg-gray-100]="day.slots.length > 0 && !day.isCurrentMonth"
+                  [class.hover:bg-indigo-100]="day.slots.length > 0 && day.isToday"
+                  [class.hover:bg-white]="day.slots.length > 0 && !day.isToday && day.isCurrentMonth"
+                  (click)="openDayPopup(day)">
+                @if(day.isToday) {
+                  <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-indigo-600 text-white text-sm font-semibold">
+                    {{ day.date | date:'d' }}
+                  </span>
+                } @else {
+                  <span class="text-sm font-medium" [class.text-gray-400]="!day.isCurrentMonth">
+                    {{ day.date | date:'d' }}
+                  </span>
+                }
+                <div class="mt-1 space-y-1">
+                  @for(slot of day.slots.slice(0, 3); track slot.id) {
+                    @let bgColor = getSlotBackgroundColor(slot);
+                    <div class="p-1 rounded text-[10px] truncate cursor-pointer hover:opacity-80" 
+                        [class]="getSlotClasses(slot)" 
+                        [style.background-color]="bgColor"
+                        (click)="selectSlot(slot); $event.stopPropagation()">
+                      {{ getSlotDisplayTitle(slot) }}
+                    </div>
+                  }
+                  @if (day.slots.length > 3) {
+                    <p class="text-[10px] text-indigo-600 font-semibold cursor-pointer">+ {{ day.slots.length - 3 }} more</p>
+                  }
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Legend -->
+    <div class="mt-6">
+      @if (!authService.isCurrentUserGlobalAdmin() && !authService.isCurrentUserCompanyAdmin()) {
+        <div class="flex items-center justify-start flex-wrap gap-x-6 gap-y-2 text-sm">
+          <div class="flex items-center">
+            <span class="w-4 h-4 rounded-sm bg-blue-100 border border-blue-200 mr-2"></span>
+            <span>{{ t()('calendar.legend.user.available') }}</span>
+          </div>
+          <div class="flex items-center">
+            <span class="w-4 h-4 rounded-sm bg-yellow-100 border border-yellow-200 mr-2"></span>
+            <span>{{ t()('calendar.legend.user.yourPending') }}</span>
+          </div>
+          <div class="flex items-center">
+            <span class="w-4 h-4 rounded-sm bg-green-100 border border-green-200 mr-2"></span>
+            <span>{{ t()('calendar.legend.user.yourBooked') }}</span>
+          </div>
+          <div class="flex items-center">
+            <span class="w-4 h-4 rounded-sm bg-gray-200 border border-gray-300 mr-2"></span>
+            <span>{{ t()('calendar.legend.user.bookedFull') }}</span>
+          </div>
+        </div>
+      } @else {
+        <div class="flex items-center justify-start flex-wrap gap-x-6 gap-y-2 text-sm">
+          <div class="flex items-center">
+            <span class="w-4 h-4 rounded-sm bg-indigo-100 border border-indigo-200 mr-2"></span>
+            <span>{{ t()('calendar.legend.admin.available') }}</span>
+          </div>
+          <div class="flex items-center">
+            <span class="w-4 h-4 rounded-sm bg-green-100 border border-green-200 mr-2"></span>
+            <span>{{ t()('calendar.legend.admin.bookedFull') }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+  </div>
+</div>
+
+@if (isDayPopupOpen() && popupDayData()) {
+  <app-day-activities-modal
+    [dayData]="popupDayData()"
+    (close)="closeDayPopup()"
+    (slotSelected)="handleSlotSelectedFromPopup($event)">
+  </app-day-activities-modal>
+}

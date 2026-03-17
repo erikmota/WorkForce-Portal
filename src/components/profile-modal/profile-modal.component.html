@@ -1,0 +1,231 @@
+<div class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center transition-opacity duration-300 ease-in-out" (click)="onClose()">
+  <div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl mx-4 transform transition-transform duration-300 ease-in-out scale-100 flex flex-col max-h-[90vh]" (click)="$event.stopPropagation()">
+    
+    <!-- Header & Tabs -->
+    <div class="p-6 flex-shrink-0">
+      <div class="flex justify-between items-start">
+        <h2 class="text-2xl font-bold text-gray-800">{{ t()('profileModal.title') }}</h2>
+        <button (click)="onClose()" class="text-gray-400 hover:text-gray-600 transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div class="mt-4 border-b border-gray-200">
+        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+          <button (click)="setTab('profile')"
+                  class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                  [class.border-indigo-500]="activeTab() === 'profile'"
+                  [class.text-indigo-600]="activeTab() === 'profile'"
+                  [class.border-transparent]="activeTab() !== 'profile'"
+                  [class.text-gray-500]="activeTab() !== 'profile'"
+                  [class.hover:text-gray-700]="activeTab() !== 'profile'"
+                  [class.hover:border-gray-300]="activeTab() !== 'profile'">
+            {{ t()('profileModal.tabs.profile') }}
+          </button>
+          <button (click)="setTab('personalData')"
+                  class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                  [class.border-indigo-500]="activeTab() === 'personalData'"
+                  [class.text-indigo-600]="activeTab() === 'personalData'"
+                  [class.border-transparent]="activeTab() !== 'personalData'"
+                  [class.text-gray-500]="activeTab() !== 'personalData'"
+                  [class.hover:text-gray-700]="activeTab() !== 'personalData'"
+                  [class.hover:border-gray-300]="activeTab() !== 'personalData'">
+            {{ t()('profileModal.tabs.personalData') }}
+          </button>
+          <button (click)="setTab('security')"
+                  class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                  [class.border-indigo-500]="activeTab() === 'security'"
+                  [class.text-indigo-600]="activeTab() === 'security'"
+                  [class.border-transparent]="activeTab() !== 'security'"
+                  [class.text-gray-500]="activeTab() !== 'security'"
+                  [class.hover:text-gray-700]="activeTab() !== 'security'"
+                  [class.hover:border-gray-300]="activeTab() !== 'security'">
+            {{ t()('profileModal.tabs.security') }}
+          </button>
+        </nav>
+      </div>
+    </div>
+    
+    <!-- Scrollable Content -->
+    <div class="p-6 overflow-y-auto" [formGroup]="userProfileForm">
+      @if (activeTab() === 'profile') {
+        <div class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">{{ t()('profileModal.profilePicture') }}</label>
+            <div class="mt-2 flex items-center space-x-4">
+              <span class="inline-block h-16 w-16 overflow-hidden rounded-full bg-gray-100">
+                @if (profilePicturePreview()) {
+                  <img class="h-full w-full object-cover" [src]="profilePicturePreview()" alt="Current profile photo" referrerpolicy="no-referrer">
+                } @else {
+                  <svg class="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 20.993V24H0v-2.997A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                }
+              </span>
+              <label for="file-upload" class="cursor-pointer rounded-md border border-gray-300 bg-white py-2 px-3 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <span>{{ t()('profileModal.change') }}</span>
+                <input id="file-upload" name="file-upload" type="file" class="sr-only" (change)="onFileSelected($event)" accept="image/png, image/jpeg">
+              </label>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="name" class="block text-sm font-medium text-gray-700">{{ t()('profileModal.name') }}</label>
+              <input type="text" id="name" formControlName="name" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+            </div>
+            <div>
+              <label for="username" class="block text-sm font-medium text-gray-700">{{ t()('profileModal.username') }}</label>
+              <p class="mt-1 block w-full rounded-md border-gray-200 bg-gray-100 shadow-sm sm:text-sm px-3 py-2 text-gray-500">{{ user().username }}</p>
+            </div>
+             <div>
+              <label for="phone" class="block text-sm font-medium text-gray-700">{{ t()('profileModal.phone') }}</label>
+              <input type="tel" id="phone" formControlName="phone" (input)="formatPhoneNumber($event)" placeholder="(XX) XXXXX-XXXX" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+            </div>
+            <div>
+              <label for="dailyRate" class="block text-sm font-medium text-gray-700">{{ t()('profileModal.dailyRate') }}</label>
+              <input type="number" id="dailyRate" formControlName="dailyRate" min="0" placeholder="150.00" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100 disabled:cursor-not-allowed">
+            </div>
+          </div>
+          <!-- Roles & Companies -->
+          <div>
+            <h3 class="text-base font-medium text-gray-900">{{ t()('profileModal.associatedCompanies') }}</h3>
+            <div class="mt-2 space-y-4">
+              @if (generalRole()) {
+                 <span class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10">{{ generalRole() }}</span>
+              }
+              @for(detail of companyDetails(); track detail.name) {
+                <div class="p-3 bg-gray-50 rounded-md border">
+                  <div class="flex justify-between items-center">
+                    <p class="font-semibold text-gray-800">{{ detail.name }}</p>
+                    <div>
+                      <span class="text-xs font-medium px-2 py-1 rounded-full mr-2"
+                        [class.bg-blue-100]="detail.role === t()('registerUser.roles.companyAdmin')"
+                        [class.text-blue-800]="detail.role === t()('registerUser.roles.companyAdmin')"
+                        [class.bg-gray-100]="detail.role !== t()('registerUser.roles.companyAdmin')"
+                        [class.text-gray-800]="detail.role !== t()('registerUser.roles.companyAdmin')">{{ detail.role }}</span>
+                      <span class="text-xs font-medium px-2 py-1 rounded-full"
+                        [class.bg-green-100]="detail.status === 'active'"
+                        [class.text-green-800]="detail.status === 'active'"
+                        [class.bg-red-100]="detail.status === 'inactive'"
+                        [class.text-red-800]="detail.status === 'inactive'">{{ t()('registerUser.statusValues.' + detail.status) }}</span>
+                    </div>
+                  </div>
+                  @if (detail.skills && detail.skills.length > 0) {
+                    <div class="mt-2 flex flex-wrap gap-1">
+                      @for (skill of detail.skills; track skill) {
+                        <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
+                          {{ skill }}
+                        </span>
+                      }
+                    </div>
+                  } @else {
+                    <p class="mt-1 text-xs text-gray-500 italic">{{ t()('profileModal.noSkills') }}</p>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+      @if (activeTab() === 'personalData') {
+        <div class="space-y-8">
+          <!-- Address -->
+          <div class="space-y-6" formGroupName="address">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">{{ t()('profileModal.address') }}</h3>
+            <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-6">
+                <div class="sm:col-span-4">
+                    <label for="street" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('profileModal.street') }}</label>
+                    <input type="text" id="street" formControlName="street" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                <div class="sm:col-span-2">
+                    <label for="number" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('profileModal.number') }}</label>
+                    <input type="text" id="number" formControlName="number" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                <div class="col-span-full">
+                    <label for="complement" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('profileModal.complement') }}</label>
+                    <input type="text" id="complement" formControlName="complement" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                <div class="sm:col-span-2">
+                    <label for="neighborhood" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('profileModal.neighborhood') }}</label>
+                    <input type="text" id="neighborhood" formControlName="neighborhood" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                 <div class="sm:col-span-2">
+                    <label for="city" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('profileModal.city') }}</label>
+                    <input type="text" id="city" formControlName="city" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                <div class="sm:col-span-1">
+                    <label for="state" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('profileModal.state') }}</label>
+                    <input type="text" id="state" formControlName="state" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                <div class="sm:col-span-1">
+                    <label for="zipCode" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('profileModal.zipCode') }}</label>
+                    <input type="text" id="zipCode" formControlName="zipCode" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+            </div>
+          </div>
+          <!-- Bank Details -->
+          <div class="space-y-6 pt-8 border-t" formGroupName="bankDetails">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">{{ t()('profileModal.bankDetails') }}</h3>
+            <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-6">
+                 <div class="sm:col-span-3">
+                    <label for="bank" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('profileModal.bank') }}</label>
+                    <input type="text" id="bank" formControlName="bank" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                 <div class="sm:col-span-1">
+                    <label for="agency" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('profileModal.agency') }}</label>
+                    <input type="text" id="agency" formControlName="agency" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                 <div class="sm:col-span-2">
+                    <label for="account" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('profileModal.account') }}</label>
+                    <input type="text" id="account" formControlName="account" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                <div class="sm:col-span-full">
+                    <label for="pixKey" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('profileModal.pixKey') }}</label>
+                    <input type="text" id="pixKey" formControlName="pixKey" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+            </div>
+          </div>
+        </div>
+      }
+      @if (activeTab() === 'security') {
+        <div class="space-y-6" [formGroup]="passwordForm">
+          <h3 class="text-lg font-medium leading-6 text-gray-900">{{ t()('profileModal.changePassword.title') }}</h3>
+          <div class="grid grid-cols-1 gap-y-6">
+            <div>
+              <label for="current-password" class="block text-sm font-medium text-gray-700">{{ t()('profileModal.changePassword.current') }}</label>
+              <input type="password" id="current-password" formControlName="currentPassword" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+            </div>
+            <div>
+              <label for="new-password" class="block text-sm font-medium text-gray-700">{{ t()('profileModal.changePassword.new') }}</label>
+              <input type="password" id="new-password" formControlName="newPassword" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+            </div>
+            <div>
+              <label for="confirm-password" class="block text-sm font-medium text-gray-700">{{ t()('profileModal.changePassword.confirm') }}</label>
+              <input type="password" id="confirm-password" formControlName="confirmPassword" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+              @if (passwordForm.hasError('passwordMismatch') && passwordForm.get('confirmPassword')?.touched) {
+                  <p class="mt-1 text-sm text-red-600">{{ t()('profileModal.changePassword.mismatchError') }}</p>
+              }
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button (click)="changePassword()" [disabled]="passwordForm.invalid" type="button" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300">
+              {{ t()('profileModal.changePassword.button') }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div class="p-6 flex justify-end border-t border-gray-200 flex-shrink-0 space-x-4">
+      <button (click)="onClose()" class="px-6 py-2 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-colors">
+        {{ t()('profileModal.closeButton') }}
+      </button>
+      @if (activeTab() !== 'security') {
+        <button (click)="saveProfile()" [disabled]="userProfileForm.pristine || userProfileForm.invalid" class="px-6 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300">
+          {{ t()('profileModal.saveProfileButton') }}
+        </button>
+      }
+    </div>
+  </div>
+</div>

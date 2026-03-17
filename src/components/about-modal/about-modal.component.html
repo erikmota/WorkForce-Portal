@@ -1,0 +1,29 @@
+<div class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center transition-opacity duration-300 ease-in-out" (click)="onClose()">
+  <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-4 transform transition-transform duration-300 ease-in-out scale-100 flex flex-col max-h-[90vh]" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="p-6 flex-shrink-0">
+      <div class="flex justify-between items-start">
+        <h2 class="text-2xl font-bold text-gray-800">{{ t()('aboutModal.title') }}</h2>
+        <button (click)="onClose()" class="text-gray-400 hover:text-gray-600 transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="px-6 pb-6 overflow-y-auto">
+      <div class="aspect-video w-full bg-gray-100 rounded-lg overflow-hidden">
+        <img [src]="aboutService.aboutImageUrl()" alt="About the application" class="w-full h-full object-cover" referrerpolicy="no-referrer">
+      </div>
+      <div class="mt-4 prose prose-sm max-w-none" [innerHTML]="aboutService.aboutDescription()">
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="p-6 flex justify-end border-t border-gray-200 flex-shrink-0">
+      <button (click)="onClose()" class="px-6 py-2 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-colors">
+        {{ t()('aboutModal.closeButton') }}
+      </button>
+    </div>
+  </div>
+</div>

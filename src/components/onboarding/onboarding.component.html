@@ -1,0 +1,118 @@
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <div class="absolute top-4 right-4 z-10">
+    <app-language-selector></app-language-selector>
+  </div>
+  <div class="sm:mx-auto sm:w-full sm:max-w-2xl">
+    <img class="mx-auto h-12 w-auto" [src]="aboutService.aboutImageUrl()" alt="Workforce Portal Logo">
+    <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">{{ t()('onboarding.title') }}</h2>
+    <p class="mt-2 text-center text-sm text-gray-600">{{ t()('onboarding.subtitle') }}</p>
+  </div>
+
+  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
+    <div class="bg-white py-8 px-4 shadow-lg sm:rounded-lg sm:px-10">
+      <form class="space-y-8" [formGroup]="onboardingForm" (ngSubmit)="onSubmit()">
+
+        <!-- Personal Info -->
+        <div class="space-y-6">
+          <h3 class="text-lg font-medium leading-6 text-gray-900">{{ t()('registerUser.personalInformation') }}</h3>
+          <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+              <label for="name" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.name') }}</label>
+              <input type="text" id="name" formControlName="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="phone" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.phone') }}</label>
+              <input type="tel" id="phone" formControlName="phone" (input)="formatPhoneNumber($event)" placeholder="(XX) XXXXX-XXXX" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            </div>
+             <div>
+              <label for="dailyRate" class="block text-sm font-medium text-gray-700">{{ t()('registerUser.dailyRate') }}</label>
+              <input type="number" id="dailyRate" formControlName="dailyRate" min="0" placeholder="150.00" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            </div>
+          </div>
+        </div>
+
+        <!-- Address -->
+        <div class="space-y-6 pt-8 border-t" formGroupName="address">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">{{ t()('registerUser.address') }}</h3>
+            <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-6">
+                <div class="sm:col-span-4">
+                    <label for="street" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.street') }}</label>
+                    <input type="text" id="street" formControlName="street" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                <div class="sm:col-span-2">
+                    <label for="number" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.number') }}</label>
+                    <input type="text" id="number" formControlName="number" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                <div class="col-span-full">
+                    <label for="complement" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.complement') }}</label>
+                    <input type="text" id="complement" formControlName="complement" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                <div class="sm:col-span-2">
+                    <label for="neighborhood" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.neighborhood') }}</label>
+                    <input type="text" id="neighborhood" formControlName="neighborhood" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                 <div class="sm:col-span-2">
+                    <label for="city" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.city') }}</label>
+                    <input type="text" id="city" formControlName="city" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                <div class="sm:col-span-1">
+                    <label for="state" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.state') }}</label>
+                    <input type="text" id="state" formControlName="state" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                <div class="sm:col-span-1">
+                    <label for="zipCode" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.zipCode') }}</label>
+                    <input type="text" id="zipCode" formControlName="zipCode" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+            </div>
+        </div>
+
+        <!-- Bank Details -->
+        <div class="space-y-6 pt-8 border-t" formGroupName="bankDetails">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">{{ t()('registerUser.bankDetails') }}</h3>
+            <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-6">
+                 <div class="sm:col-span-3">
+                    <label for="bank" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.bank') }}</label>
+                    <input type="text" id="bank" formControlName="bank" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                 <div class="sm:col-span-1">
+                    <label for="agency" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.agency') }}</label>
+                    <input type="text" id="agency" formControlName="agency" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                 <div class="sm:col-span-2">
+                    <label for="account" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.account') }}</label>
+                    <input type="text" id="account" formControlName="account" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+                <div class="sm:col-span-full">
+                    <label for="pixKey" class="block text-sm font-medium leading-6 text-gray-900">{{ t()('registerUser.pixKey') }}</label>
+                    <input type="text" id="pixKey" formControlName="pixKey" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Password -->
+        <div class="space-y-6 pt-8 border-t">
+          <h3 class="text-lg font-medium leading-6 text-gray-900">{{ t()('onboarding.passwordTitle') }}</h3>
+          <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+            <div>
+              <label for="new-password" class="block text-sm font-medium text-gray-700">{{ t()('profileModal.changePassword.new') }}</label>
+              <input type="password" id="new-password" formControlName="newPassword" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="confirm-password" class="block text-sm font-medium text-gray-700">{{ t()('profileModal.changePassword.confirm') }}</label>
+              <input type="password" id="confirm-password" formControlName="confirmPassword" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+              @if (onboardingForm.hasError('passwordMismatch') && onboardingForm.get('confirmPassword')?.touched) {
+                  <p class="mt-1 text-sm text-red-600">{{ t()('profileModal.changePassword.mismatchError') }}</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <button type="submit" [disabled]="onboardingForm.invalid || isSaving()" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300">
+            {{ t()('onboarding.submitButton') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

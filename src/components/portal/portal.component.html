@@ -1,0 +1,571 @@
+<div class="min-h-screen bg-gray-100 flex flex-col">
+  <div class="sticky top-0 z-30">
+    @if (isOffline()) {
+      <div class="bg-red-600 text-white text-center py-1 text-sm font-semibold">
+        {{ t()('portal.offlineMessage') }}
+      </div>
+    }
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+      <div class="py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">{{ t()('portal.header.title') }}</h1>
+        @if (currentUser(); as user) {
+          <div class="flex items-center space-x-2 sm:space-x-4">
+            <app-language-selector></app-language-selector>
+
+            @if (!authService.isCurrentUserGlobalAdmin() && !authService.isCurrentUserCompanyAdmin()) {
+              <div class="relative">
+                  <button (click)="toggleNotifications()" #notificationsButton class="relative p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    @if (user.notifications && user.notifications.length > 0) {
+                        <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">{{ user.notifications.length }}</span>
+                    }
+                  </button>
+                  @if (showNotifications()) {
+                    <div #notificationsContainer class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-20">
+                        <div class="py-2">
+                            <div class="px-4 py-2 flex justify-between items-center border-b">
+                                <h4 class="text-gray-700 font-bold">{{ t()('portal.header.notifications.title') }}</h4>
+                                @if (user.notifications && user.notifications.length > 0) {
+                                  <button (click)="clearNotifications()" class="text-sm text-indigo-600 hover:underline">{{ t()('portal.header.notifications.clearAll') }}</button>
+                                }
+                            </div>
+                            <div class="max-h-60 overflow-y-auto">
+                              @if (user.notifications && user.notifications.length > 0) {
+                                  @for(notification of user.notifications; track $index) {
+                                  <div class="px-4 py-3 border-b hover:bg-gray-100">
+                                      <p class="text-sm text-gray-600">{{ notification }}</p>
+                                  </div>
+                                  }
+                              } @else {
+                                  <p class="px-4 py-4 text-sm text-gray-500 text-center">{{ t()('portal.header.notifications.noNotifications') }}</p>
+                              }
+                            </div>
+                        </div>
+                    </div>
+                  }
+              </div>
+            }
+            <!-- User Menu -->
+            <div class="relative">
+              <button (click)="toggleUserMenu()" #userMenuButton class="flex items-center space-x-2 focus:outline-none">
+                <span class="text-gray-600"><span class="hidden sm:inline">{{ t()('portal.header.welcome') }} </span><span class="font-medium">{{ user.name }}</span></span>
+                @if (user.profilePictureUrl) {
+                  <img class="w-8 h-8 rounded-full object-cover" [src]="user.profilePictureUrl" alt="User profile" referrerpolicy="no-referrer">
+                } @else {
+                  <span class="inline-block h-8 w-8 overflow-hidden rounded-full bg-gray-200">
+                    <svg class="h-full w-full text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 20.993V24H0v-2.997A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  </span>
+                }
+              </button>
+              @if(showUserMenu()) {
+                <div #userMenuContainer class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-20">
+                    <div class="px-4 py-2 border-b">
+                      <p class="text-sm font-medium text-gray-900 truncate">{{ user.name }}</p>
+                    </div>
+                    <a href="#" (click)="openProfileModal(); $event.preventDefault()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{{ t()('portal.header.userMenu.manageProfile') }}</a>
+                    @if (authService.isCurrentUserCompanyAdmin()) {
+                      <a href="#" (click)="adminView.set('manage-company-profile'); showUserMenu.set(false); $event.preventDefault()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{{ t()('portal.header.userMenu.manageCompanyProfile') }}</a>
+                    }
+                    <a href="#" (click)="openAboutModal(); $event.preventDefault()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{{ t()('portal.header.userMenu.about') }}</a>
+                    <a href="#" (click)="authService.logout(); $event.preventDefault()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{{ t()('portal.header.userMenu.logout') }}</a>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </header>
+  </div>
+
+  <!-- Main Content -->
+  <main class="py-10 flex-grow">
+    @if(isLoading()) {
+      <div class="flex justify-center items-center h-64">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    } @else {
+      <div class="px-4 sm:px-6 lg:px-8">
+        @if (companyBanners().length > 0) {
+          <div class="w-full h-48 bg-gray-200 rounded-lg shadow-md overflow-hidden mb-8 relative group">
+            @if (companyBanners().length === 1) {
+              <img [src]="companyBanners()[0]" alt="Company Banner" class="w-full h-full object-cover" referrerpolicy="no-referrer">
+            } @else {
+              <!-- Carousel Images -->
+              @for (bannerUrl of companyBanners(); track bannerUrl; let i = $index) {
+                <img [src]="bannerUrl" 
+                     alt="Company Banner {{ i + 1 }}" 
+                     class="w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 ease-in-out"
+                     [class.opacity-100]="i === currentBannerIndex()"
+                     [class.opacity-0]="i !== currentBannerIndex()"
+                     referrerpolicy="no-referrer">
+              }
+
+              <!-- Carousel Controls -->
+              <button (click)="previousBanner()" class="absolute top-1/2 left-4 -translate-y-1/2 bg-black/30 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none focus:ring-2 focus:ring-white z-10">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+              </button>
+              <button (click)="nextBanner()" class="absolute top-1/2 right-4 -translate-y-1/2 bg-black/30 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none focus:ring-2 focus:ring-white z-10">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </button>
+
+              <!-- Carousel Indicators -->
+              <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
+                @for (bannerUrl of companyBanners(); track bannerUrl; let i = $index) {
+                  <button (click)="goToBanner(i)" 
+                          class="w-3 h-3 rounded-full transition-colors"
+                          [class.bg-white]="i === currentBannerIndex()"
+                          [class.bg-white/50]="i !== currentBannerIndex()"
+                          [class.hover:bg-white]="i !== currentBannerIndex()"></button>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @if (authService.isCurrentUserGlobalAdmin() || authService.isCurrentUserCompanyAdmin()) {
+          <!-- Admin Portals -->
+          <div>
+            <div class="border-b border-gray-200">
+              <!-- Desktop Tabs -->
+              <div class="hidden sm:block">
+                <nav class="-mb-px flex flex-wrap gap-x-8 gap-y-2 px-4 sm:px-0" aria-label="Tabs">
+                  @for(item of adminMenuItems(); track item.view) {
+                    <button (click)="adminView.set(item.view)" 
+                            [class.border-indigo-500]="adminView() === item.view" 
+                            [class.text-indigo-600]="adminView() === item.view" 
+                            class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                      {{ t()(item.labelKey) }}
+                    </button>
+                  }
+                </nav>
+              </div>
+              <!-- Mobile Menu Trigger -->
+              <div class="sm:hidden px-4">
+                  <button (click)="isMobileMenuOpen.set(true)" type="button" class="flex w-full items-center justify-between rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                      <span>{{ adminViewLabel() }}</span>
+                      <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.5a.75.75 0 01-1.5 0V3.75A.75.75 0 0110 3z" clip-rule="evenodd" />
+                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v4.59L7.97 9.97a.75.75 0 00-1.06 1.06l3.5 3.5a.75.75 0 001.06 0l3.5-3.5a.75.75 0 00-1.06-1.06l-1.72 1.72V6.75z" clip-rule="evenodd" />
+                      </svg>
+                  </button>
+              </div>
+            </div>
+
+            <!-- Mobile Menu Bottom Sheet -->
+            <div class="fixed inset-0 z-40 sm:hidden transition-opacity"
+                [class.opacity-100]="isMobileMenuOpen()"
+                [class.opacity-0]="!isMobileMenuOpen()"
+                [class.pointer-events-auto]="isMobileMenuOpen()"
+                [class.pointer-events-none]="!isMobileMenuOpen()">
+                
+                <!-- Backdrop -->
+                <div class="absolute inset-0 bg-black bg-opacity-50" (click)="isMobileMenuOpen.set(false)"></div>
+                
+                <!-- Sliding Panel -->
+                <div class="absolute bottom-0 w-full bg-white rounded-t-lg shadow-xl max-h-[80vh] flex flex-col transition-transform duration-300 ease-in-out"
+                    [class.translate-y-0]="isMobileMenuOpen()"
+                    [class.translate-y-full]="!isMobileMenuOpen()">
+                    <!-- Header -->
+                    <div class="p-4 flex-shrink-0">
+                      <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-800">Menu</h3>
+                        <button (click)="isMobileMenuOpen.set(false)" class="p-2 -m-2 text-gray-400 hover:text-gray-600 rounded-full">
+                          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                      </div>
+                    </div>
+                    <!-- Menu Items -->
+                    <nav class="flex-grow overflow-y-auto p-4 pt-0">
+                      <ul class="space-y-1">
+                        @for (item of adminMenuItems(); track item.view) {
+                          <li>
+                            <button (click)="setAdminView(item.view)" 
+                                    class="w-full flex items-center p-3 text-base rounded-md transition-colors"
+                                    [class.bg-indigo-50]="adminView() === item.view"
+                                    [class.text-indigo-700]="adminView() === item.view"
+                                    [class.font-semibold]="adminView() === item.view"
+                                    [class.text-gray-700]="adminView() !== item.view"
+                                    [class.hover:bg-gray-100]="adminView() !== item.view">
+                              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="item.iconPath" />
+                              </svg>
+                              <span class="ml-3">{{ t()(item.labelKey) }}</span>
+                            </button>
+                          </li>
+                        }
+                      </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Admin Filters -->
+            @if(adminView() === 'requests' || adminView() === 'manage-calendar' || adminView() === 'general-report' || adminView() === 'financial-report' || adminView() === 'audit-log') {
+              <div class="my-6 px-4 sm:px-0">
+                <div class="flex justify-between items-center mb-4">
+                  <h3 class="text-lg font-medium leading-6 text-gray-900">{{ t()('portal.admin.filters.title') }}</h3>
+                  <button (click)="isFilterPanelVisible.set(!isFilterPanelVisible())" type="button" class="relative inline-flex items-center gap-x-2 rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                    @if (areAdminFiltersActive()) {
+                      <span class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-indigo-600 ring-2 ring-white"></span>
+                    }
+                    <svg class="h-5 w-5" [class.text-indigo-600]="areAdminFiltersActive()" [class.text-gray-400]="!areAdminFiltersActive()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.59L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clip-rule="evenodd" />
+                    </svg>
+                    @if (isFilterPanelVisible()) {
+                      <span>{{ t()('portal.admin.filters.hide') }}</span>
+                    } @else {
+                      <span>{{ t()('portal.admin.filters.show') }}</span>
+                    }
+                  </button>
+                </div>
+
+                @if(isFilterPanelVisible()) {
+                  <div class="p-4 bg-gray-50 shadow rounded-lg border border-gray-200">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                      @if (adminView() !== 'audit-log') {
+                        <div>
+                          <label for="admin-title" class="block text-sm font-medium text-gray-700">{{ t()('portal.user.filters.jobTitle') }}</label>
+                          <input type="text" id="admin-title" [value]="adminFilterTitle()" (input)="adminFilterTitle.set($any($event.target).value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                          <label for="admin-company" class="block text-sm font-medium text-gray-700">{{ t()('portal.user.filters.company') }}</label>
+                          <select id="admin-company" [value]="adminFilterCompanyId()" (change)="adminFilterCompanyId.set($any($event.target).value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="all">{{ t()('registerActivity.filters.allCompanies') }}</option>
+                            @for(company of adminVisibleCompanies(); track company.id) {
+                              <option [value]="company.id">{{ company.name }}</option>
+                            }
+                          </select>
+                        </div>
+                        <div>
+                          <label for="admin-grouped" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.isGrouped') }}</label>
+                          <select id="admin-grouped" [value]="adminFilterIsGrouped()" (change)="adminFilterIsGrouped.set($any($event.target).value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="all">{{ t()('portal.admin.filters.allStatuses') }}</option>
+                            <option value="yes">{{ t()('general.yes') }}</option>
+                            <option value="no">{{ t()('general.no') }}</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label for="admin-transport" class="block text-sm font-medium text-gray-700">{{ t()('portal.admin.filters.offersTransportation') }}</label>
+                          <select id="admin-transport" [value]="adminFilterNeedsTransportation()" (change)="adminFilterNeedsTransportation.set($any($event.target).value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="all">{{ t()('portal.admin.filters.allStatuses') }}</option>
+                            <option value="yes">{{ t()('general.yes') }}</option>
+                            <option value="no">{{ t()('general.no') }}</option>
+                          </select>
+                        </div>
+                      }
+                      <div>
+                        <label for="admin-start-date" class="block text-sm font-medium text-gray-700">{{ t()('portal.admin.filters.startDate') }}</label>
+                        <input type="date" id="admin-start-date" [value]="adminFilterStartDate()" (input)="adminFilterStartDate.set($any($event.target).value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                      </div>
+                      <div>
+                        <label for="admin-end-date" class="block text-sm font-medium text-gray-700">{{ t()('portal.admin.filters.endDate') }}</label>
+                        <input type="date" id="admin-end-date" [value]="adminFilterEndDate()" (input)="adminFilterEndDate.set($any($event.target).value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                      </div>
+                      @if(adminView() === 'manage-calendar' || adminView() === 'general-report' || adminView() === 'financial-report') {
+                        <div>
+                          <label for="admin-filter-status" class="block text-sm font-medium text-gray-700">{{ t()('portal.admin.filters.status') }}</label>
+                          <select id="admin-filter-status" [value]="adminFilterStatus()" (change)="adminFilterStatus.set($any($event.target).value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="all">{{ t()('portal.admin.filters.allStatuses') }}</option>
+                            <option value="available">{{ t()('report.status.available') }}</option>
+                            <option value="booked">{{ t()('report.status.booked') }}</option>
+                            <option value="pending">{{ t()('report.status.pending') }}</option>
+                          </select>
+                        </div>
+                      }
+                      @if (adminView() !== 'audit-log') {
+                        <div>
+                          <label for="admin-skill" class="block text-sm font-medium text-gray-700">{{ t()('portal.admin.filters.skill') }}</label>
+                          <select id="admin-skill" [value]="adminFilterSkill()" (change)="adminFilterSkill.set($any($event.target).value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                              <option value="all">{{ t()('portal.admin.filters.allSkills') }}</option>
+                              @for(skill of adminVisibleSkills(); track skill.id) {
+                                  <option [value]="skill.name">{{ skill.name }}</option>
+                              }
+                          </select>
+                        </div>
+                      }
+                      <div>
+                        <label for="admin-user" class="block text-sm font-medium text-gray-700">{{ t()('portal.admin.filters.user') }}</label>
+                        <select id="admin-user" [value]="adminFilterUserId()" (change)="adminFilterUserId.set($any($event.target).value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option value="all">{{ t()('portal.admin.filters.allUsers') }}</option>
+                            @for(user of visibleEndUsers(); track user.id) {
+                                <option [value]="user.id">{{ user.name }} ({{ user.username }})</option>
+                            }
+                        </select>
+                      </div>
+                       <div>
+                        <button type="button" (click)="resetAdminFilters()" class="w-full inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">{{ t()('portal.admin.filters.reset') }}</button>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <div class="mt-8">
+              @switch (adminView()) {
+                @case ('requests') {
+                  <app-manage-requests 
+                    (approve)="handleApproveRequest($event)"
+                    (approveBatch)="handleApproveBatch($event)"
+                    (activityClicked)="handleSlotSelected($event)"
+                    [startDate]="adminFilterStartDate()"
+                    [endDate]="adminFilterEndDate()"
+                    [title]="adminFilterTitle()"
+                    [companyId]="adminFilterCompanyId()"
+                    [isGrouped]="adminFilterIsGrouped()"
+                    [needsTransportation]="adminFilterNeedsTransportation()"
+                    [skill]="adminFilterSkill()"
+                    [userId]="adminFilterUserId()">
+                  </app-manage-requests>
+                }
+                @case ('manage-calendar') {
+                  <app-calendar 
+                    (slotSelected)="handleSlotSelected($event)"
+                    [initialViewMode]="'monthly'"
+                    [startDateFilter]="adminFilterStartDate()"
+                    [endDateFilter]="adminFilterEndDate()"
+                    [statusFilter]="adminFilterStatus()"
+                    [titleFilter]="adminFilterTitle()"
+                    [companyIdFilter]="adminFilterCompanyId()"
+                    [isGroupedFilter]="adminFilterIsGrouped()"
+                    [needsTransportationFilter]="adminFilterNeedsTransportation()"
+                    [skillFilter]="adminFilterSkill()"
+                    [userIdFilter]="adminFilterUserId()">
+                  </app-calendar>
+                }
+                @case ('general-report') {
+                  <app-general-report
+                    (slotClicked)="handleSlotSelected($event)"
+                    [startDateFilter]="adminFilterStartDate()"
+                    [endDateFilter]="adminFilterEndDate()"
+                    [statusFilter]="adminFilterStatus()"
+                    [titleFilter]="adminFilterTitle()"
+                    [companyIdFilter]="adminFilterCompanyId()"
+                    [isGroupedFilter]="adminFilterIsGrouped()"
+                    [needsTransportationFilter]="adminFilterNeedsTransportation()"
+                    [skillFilter]="adminFilterSkill()"
+                    [userIdFilter]="adminFilterUserId()">
+                  </app-general-report>
+                }
+                @case ('financial-report') {
+                  <app-financial-report
+                    (slotClicked)="handleSlotSelected($event)"
+                    [startDateFilter]="adminFilterStartDate()"
+                    [endDateFilter]="adminFilterEndDate()"
+                    [statusFilter]="adminFilterStatus()"
+                    [titleFilter]="adminFilterTitle()"
+                    [companyIdFilter]="adminFilterCompanyId()"
+                    [isGroupedFilter]="adminFilterIsGrouped()"
+                    [needsTransportationFilter]="adminFilterNeedsTransportation()"
+                    [skillFilter]="adminFilterSkill()"
+                    [userIdFilter]="adminFilterUserId()">
+                  </app-financial-report>
+                }
+                @case ('audit-log') {
+                  <app-audit-log
+                    [startDate]="adminFilterStartDate()"
+                    [endDate]="adminFilterEndDate()"
+                    [userId]="adminFilterUserId()">
+                  </app-audit-log>
+                }
+                @case ('new-activity') {
+                  <app-register-activity 
+                    [slotToEdit]="slotToEdit()"
+                    (activitySaved)="onActivitySaved()">
+                  </app-register-activity>
+                }
+                @case ('manage-companies') {
+                  <app-manage-companies></app-manage-companies>
+                }
+                @case ('manage-skills') {
+                  <app-manage-skills></app-manage-skills>
+                }
+                @case ('manage-company-profile') {
+                  @if (authService.isCurrentUserCompanyAdmin()) {
+                    <app-manage-company-profile></app-manage-company-profile>
+                  }
+                }
+                @case ('manage-about') {
+                  @if (authService.isCurrentUserGlobalAdmin()) {
+                    <app-manage-about></app-manage-about>
+                  }
+                }
+                @case ('manage-users') {
+                  <app-register-user></app-register-user>
+                }
+              }
+            </div>
+          </div>
+        } @else {
+          <!-- User Portal -->
+
+          <!-- Filter & View Mode Section -->
+          <div class="mb-8 px-4 sm:px-0">
+             <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+              <h3 class="text-lg font-medium leading-6 text-gray-900">{{ t()('portal.user.filters.title') }}</h3>
+              <div class="flex items-center gap-4">
+                <button (click)="isFilterPanelVisible.set(!isFilterPanelVisible())" type="button" class="relative inline-flex items-center gap-x-2 rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                   @if (areUserFiltersActive()) {
+                    <span class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-indigo-600 ring-2 ring-white"></span>
+                  }
+                  <svg class="h-5 w-5" [class.text-indigo-600]="areUserFiltersActive()" [class.text-gray-400]="!areUserFiltersActive()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.59L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clip-rule="evenodd" />
+                  </svg>
+                  @if (isFilterPanelVisible()) {
+                    <span>{{ t()('portal.admin.filters.hide') }}</span>
+                  } @else {
+                    <span>{{ t()('portal.admin.filters.show') }}</span>
+                  }
+                </button>
+
+                <span class="isolate inline-flex rounded-md shadow-sm">
+                  <button type="button" (click)="userViewMode.set('calendar')"
+                          [title]="t()('portal.user.viewMode.calendar')"
+                          class="relative inline-flex items-center justify-center rounded-l-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-10 transition-colors"
+                          [class.bg-indigo-600]="userViewMode() === 'calendar'"
+                          [class.text-white]="userViewMode() === 'calendar'"
+                          [class.bg-white]="userViewMode() !== 'calendar'"
+                          [class.text-gray-900]="userViewMode() !== 'calendar'"
+                          [class.hover:bg-gray-50]="userViewMode() !== 'calendar'">
+                    <span class="sr-only">{{ t()('portal.user.viewMode.calendar') }}</span>
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  </button>
+                  <button type="button" (click)="userViewMode.set('list')"
+                          [title]="t()('portal.user.viewMode.list')"
+                          class="relative -ml-px inline-flex items-center justify-center rounded-r-md px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-10 transition-colors"
+                          [class.bg-indigo-600]="userViewMode() === 'list'"
+                          [class.text-white]="userViewMode() === 'list'"
+                          [class.bg-white]="userViewMode() !== 'list'"
+                          [class.text-gray-900]="userViewMode() !== 'list'"
+                          [class.hover:bg-gray-50]="userViewMode() !== 'list'">
+                    <span class="sr-only">{{ t()('portal.user.viewMode.list') }}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+                  </button>
+                </span>
+              </div>
+            </div>
+            @if (isFilterPanelVisible()) {
+              <div class="bg-white p-4 rounded-lg shadow-md">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+                  <div>
+                    <label for="filter-title" class="block text-sm font-medium text-gray-700">{{ t()('portal.user.filters.jobTitle') }}</label>
+                    <input type="text" id="filter-title" [value]="filterTitle()" (input)="filterTitle.set($any($event.target).value)" [placeholder]="t()('portal.user.filters.jobTitlePlaceholder')" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                  </div>
+                  <div>
+                    <label for="filter-company" class="block text-sm font-medium text-gray-700">{{ t()('portal.user.filters.company') }}</label>
+                    <select id="filter-company" [value]="filterCompanyId()" (change)="filterCompanyId.set($any($event.target).value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                      <option value="all">{{ t()('registerActivity.filters.allCompanies') }}</option>
+                      @for(company of userVisibleCompanies(); track company.id) {
+                        <option [value]="company.id">{{ company.name }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div>
+                    <label for="filter-location" class="block text-sm font-medium text-gray-700">{{ t()('portal.user.filters.location') }}</label>
+                    <input type="text" id="filter-location" [value]="filterLocation()" (input)="filterLocation.set($any($event.target).value)" [placeholder]="t()('portal.user.filters.locationPlaceholder')" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                  </div>
+                  <div>
+                    <label for="filter-status" class="block text-sm font-medium text-gray-700">{{ t()('portal.user.filters.status') }}</label>
+                    <select id="filter-status" [value]="filterStatus()" (change)="filterStatus.set($any($event.target).value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                      @for(option of userStatusFilterOptions(); track option.value) {
+                        <option [value]="option.value">{{ option.label }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div>
+                    <label for="filter-skill" class="block text-sm font-medium text-gray-700">{{ t()('portal.user.filters.skill') }}</label>
+                    <select id="filter-skill" [value]="filterSkill()" (change)="filterSkill.set($any($event.target).value)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <option value="all">{{ t()('portal.user.filters.allSkills') }}</option>
+                        @for(skill of userSkillFilterOptions(); track skill.id) {
+                            <option [value]="skill.value">{{ skill.label }}</option>
+                        }
+                    </select>
+                  </div>
+                  <div>
+                    <button (click)="resetUserFilters()" type="button" class="w-full inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                      {{ t()('portal.user.filters.reset') }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (userViewMode() === 'calendar') {
+            <app-calendar
+              (slotSelected)="handleSlotSelected($event)"
+              [initialViewMode]="'monthly'"
+              [titleFilter]="filterTitle()"
+              [companyIdFilter]="filterCompanyId()"
+              [locationFilter]="filterLocation()"
+              [statusFilter]="filterStatus()"
+              [skillFilter]="filterSkill()">
+            </app-calendar>
+          } @else {
+            <app-activity-list
+              (slotSelected)="handleSlotSelected($event)"
+              (register)="handleQuickRegister($event)"
+              (cancel)="handleQuickCancel($event)"
+              [titleFilter]="filterTitle()"
+              [companyIdFilter]="filterCompanyId()"
+              [locationFilter]="filterLocation()"
+              [statusFilter]="filterStatus()"
+              [skillFilter]="filterSkill()">
+            </app-activity-list>
+          }
+        }
+      </div>
+    }
+  </main>
+  
+  <footer class="py-4">
+    <div class="px-4 sm:px-6 lg:px-8 flex items-center justify-center space-x-3">
+        <img [src]="aboutService.aboutImageUrl()" alt="About" class="h-8 w-8 rounded-full object-cover" referrerpolicy="no-referrer">
+        <p class="text-xs text-gray-500">
+            &copy; {{ currentYear }} Workforce Portal. All Rights Reserved. by ERIK MOTA
+        </p>
+    </div>
+  </footer>
+</div>
+
+<!-- Modal for both user and admin (when/if admin clicks a slot) -->
+@if (isModalOpen()) {
+  <app-job-details-modal 
+    [slot]="selectedSlot()" 
+    [user]="currentUser()"
+    (close)="handleCloseModal()"
+    (register)="handleRequestSlot($event)"
+    (cancel)="handleCancelRequest($event)"
+    (edit)="handleEditSlot($event)"
+    (delete)="handleDeleteSlot($event)"
+    (approve)="handleApproveRequest($event)"
+    (approveBatch)="handleApproveBatch($event)"
+    (click)="handleCloseModal()">
+  </app-job-details-modal>
+}
+
+@if (isProfileModalOpen() && currentUser()) {
+  <app-profile-modal
+    [user]="currentUser()!"
+    (close)="closeProfileModal()"
+    (userUpdated)="handleUserUpdated($event)">
+  </app-profile-modal>
+}
+
+@if (isAboutModalOpen()) {
+  <app-about-modal (close)="closeAboutModal()"></app-about-modal>
+}
+
+@if (showHireLimitConfirm() && limitDetails(); as details) {
+  <app-confirmation-modal
+    [message]="details.message"
+    [confirmButtonText]="t()('confirmationModal.buttons.proceed')"
+    [cancelButtonText]="t()('confirmationModal.buttons.doNotProceed')"
+    (confirm)="confirmLimitedApproval()"
+    (cancel)="cancelLimitedApproval()">
+  </app-confirmation-modal>
+}

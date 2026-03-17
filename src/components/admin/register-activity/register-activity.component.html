@@ -1,0 +1,480 @@
+<div class="px-4 sm:px-0 space-y-12">
+  <!-- Registration/Edit Form -->
+  <div>
+    <h2 class="text-2xl font-bold tracking-tight text-gray-900">{{ formTitle() }}</h2>
+    <div class="mt-4 p-6 bg-white shadow-lg rounded-lg">
+      @if ((editingSlot() || editingGroup()) && hasApprovedRegistrations()) {
+        @let editingItem = editingSlot() || editingGroup();
+        @let firstSlot = isGroup(editingItem) ? editingItem!.slots[0] : editingItem;
+        @let count = isGroup(editingItem) ? editingItem!.filledCapacity : getFilledCapacity(editingItem!);
+        
+        <div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800">
+          <p class="font-bold">{{ t()('registerActivity.editRestrictionTitle') }}</p>
+          @if (firstSlot?.capacityMode === 'skill') {
+            <p class="text-sm">{{ t()('registerActivity.editRestrictionMessageSkill', { count: count }) }}</p>
+          } @else {
+            <p class="text-sm">{{ t()('registerActivity.editRestrictionMessageActivity', { count: count }) }}</p>
+          }
+        </div>
+      }
+      <form [formGroup]="activityForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="title" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.jobTitle') }}</label>
+            <input type="text" id="title" formControlName="title" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100"
+                   [class.ring-red-500]="activityForm.get('title')?.invalid && activityForm.get('title')?.touched">
+            @if (activityForm.get('title')?.invalid && activityForm.get('title')?.touched) {
+              <p class="mt-1 text-sm text-red-600">{{ t()('registerActivity.errors.titleRequired') }}</p>
+            }
+          </div>
+          
+          @if (showCompanyDropdown()) {
+            <div>
+              <label for="companyId" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.company') }}</label>
+              <select id="companyId" formControlName="companyId" class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100"
+                      [class.ring-red-500]="activityForm.get('companyId')?.invalid && activityForm.get('companyId')?.touched">
+                <option [value]="null" disabled>{{ t()('registerActivity.selectCompany') }}</option>
+                @for(company of availableCompanies(); track company.id) {
+                  <option [value]="company.id">{{ company.name }}</option>
+                }
+              </select>
+              @if (activityForm.get('companyId')?.invalid && activityForm.get('companyId')?.touched) {
+                <p class="mt-1 text-sm text-red-600">{{ t()('registerActivity.errors.companyRequired') }}</p>
+              }
+            </div>
+          } @else if (availableCompanies().length > 0) {
+            <div>
+              <label for="companyName" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.company') }}</label>
+              <p id="companyName" class="mt-1 block w-full rounded-md border-gray-200 bg-gray-100 shadow-sm sm:text-sm px-3 py-2 text-gray-700">
+                {{ availableCompanies()[0].name }}
+              </p>
+            </div>
+          }
+
+          <div class="md:col-span-2">
+            <div class="flex justify-between items-center">
+              <label for="description" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.description') }}</label>
+              @if (geminiService.isConfigured()) {
+                <button (click)="generateDescription()" [disabled]="isGeneratingDescription()" type="button" class="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-semibold disabled:opacity-50 disabled:cursor-wait" [title]="t()('ai.generateDescriptionTooltip')">
+                  @if (isGeneratingDescription()) {
+                    <svg class="animate-spin h-4 w-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>{{ t()('ai.generating') }}</span>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                      <path fill-rule="evenodd" d="M10 2.5a.75.75 0 01 .75.75v3.5a.75.75 0 01-1.5 0V3.25A.75.75 0 01 10 2.5ZM5.625 5.625a.75.75 0 01 1.06 0l2.47 2.47a.75.75 0 1 1-1.06 1.06L5.625 6.685a.75.75 0 01 0-1.06Zm8.75 0a.75.75 0 01 0 1.06l-2.47 2.47a.75.75 0 1 1-1.06-1.06l2.47-2.47a.75.75 0 01 1.06 0ZM2.5 10a.75.75 0 01 .75-.75h3.5a.75.75 0 01 0 1.5h-3.5a.75.75 0 01-.75-.75Zm14.25 0a.75.75 0 01 .75-.75h3.5a.75.75 0 01 0 1.5h-3.5a.75.75 0 01-.75-.75Zm-8.75 4.375a.75.75 0 01 1.06 0l2.47-2.47a.75.75 0 0 1 1.06 1.06L6.685 15.435a.75.75 0 01-1.06 0l-.001-.001a.75.75 0 01 0-1.06Zm8.75 0a.75.75 0 01 0 1.06l-2.47 2.47a.75.75 0 1 1-1.06-1.06l2.47-2.47a.75.75 0 01 1.06 0ZM10 17.5a.75.75 0 01-.75-.75v-3.5a.75.75 0 01 1.5 0v3.5a.75.75 0 01-.75-.75Z" clip-rule="evenodd" />
+                    </svg>
+                    <span>{{ t()('ai.generateDescriptionButton') }}</span>
+                  }
+                </button>
+              }
+            </div>
+            <textarea id="description" formControlName="description" rows="3" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100"
+                      [class.ring-red-500]="activityForm.get('description')?.invalid && activityForm.get('description')?.touched"></textarea>
+            @if (activityForm.get('description')?.invalid && activityForm.get('description')?.touched) {
+              <p class="mt-1 text-sm text-red-600">{{ t()('registerActivity.errors.descriptionRequired') }}</p>
+            }
+          </div>
+          <div>
+            <label for="location" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.location') }}</label>
+            <input type="text" id="location" formControlName="location" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100"
+                   [class.ring-red-500]="activityForm.get('location')?.invalid && activityForm.get('location')?.touched">
+            @if (activityForm.get('location')?.invalid && activityForm.get('location')?.touched) {
+              <p class="mt-1 text-sm text-red-600">{{ t()('registerActivity.errors.locationRequired') }}</p>
+            }
+          </div>
+          
+          <div class="md:col-span-2 space-y-4">
+            <div class="flex items-center">
+              <input id="hideTitleFromUser" type="checkbox" formControlName="hideTitleFromUser" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:bg-gray-100">
+              <label for="hideTitleFromUser" class="ml-3 block text-sm font-medium text-gray-700">{{ t()('registerActivity.hideTitle') }}</label>
+            </div>
+            <div class="flex items-start">
+              <input id="isGrouped" type="checkbox" formControlName="isGrouped" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:bg-gray-100 mt-0.5">
+              <div class="ml-3">
+                <label for="isGrouped" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.isGrouped') }}</label>
+                <p class="text-xs text-gray-500">{{ t()('registerActivity.isGroupedHelp') }}</p>
+              </div>
+            </div>
+            <div class="flex items-center">
+              <input id="offersTransportation" type="checkbox" formControlName="offersTransportation" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:bg-gray-100">
+              <label for="offersTransportation" class="ml-3 block text-sm font-medium text-gray-700">{{ t()('registerActivity.offersTransportation') }}</label>
+            </div>
+            
+            @if (activityForm.get('offersTransportation')?.value) {
+              <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-4 border border-gray-200 rounded-md bg-gray-50/50">
+                  <div>
+                      <label for="transportationDepartureTime" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.departureTime') }}</label>
+                      <input type="time" id="transportationDepartureTime" formControlName="transportationDepartureTime" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100"
+                             [class.ring-red-500]="activityForm.get('transportationDepartureTime')?.invalid && activityForm.get('transportationDepartureTime')?.touched">
+                      @if (activityForm.get('transportationDepartureTime')?.invalid && activityForm.get('transportationDepartureTime')?.touched) {
+                          <p class="mt-1 text-sm text-red-600">{{ t()('registerActivity.errors.departureTimeRequired') }}</p>
+                      }
+                  </div>
+                  <div>
+                      <label for="transportationDepartureLocation" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.departureLocation') }}</label>
+                      <input type="text" id="transportationDepartureLocation" formControlName="transportationDepartureLocation" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100"
+                             [class.ring-red-500]="activityForm.get('transportationDepartureLocation')?.invalid && activityForm.get('transportationDepartureLocation')?.touched">
+                      @if (activityForm.get('transportationDepartureLocation')?.invalid && activityForm.get('transportationDepartureLocation')?.touched) {
+                          <p class="mt-1 text-sm text-red-600">{{ t()('registerActivity.errors.departureLocationRequired') }}</p>
+                      }
+                  </div>
+                  <div class="md:col-span-2">
+                      <label for="transportationNotes" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.transportationNotes') }}</label>
+                      <textarea id="transportationNotes" formControlName="transportationNotes" rows="2" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100"></textarea>
+                  </div>
+              </div>
+            }
+          </div>
+          <div>
+            <label for="startDate" class="block text-sm font-medium text-gray-700">
+              @if(activityForm.get('isGrouped')?.value) {
+                <span>{{ t()('registerActivity.startDate') }}</span>
+              } @else {
+                <span>{{ t()('registerActivity.date') }}</span>
+              }
+            </label>
+            <input type="date" id="startDate" formControlName="startDate" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100"
+                   [class.ring-red-500]="activityForm.get('startDate')?.invalid && activityForm.get('startDate')?.touched">
+            @if (activityForm.get('startDate')?.invalid && activityForm.get('startDate')?.touched) {
+              <p class="mt-1 text-sm text-red-600">{{ t()('registerActivity.errors.startDateRequired') }}</p>
+            }
+          </div>
+          
+          @if(activityForm.get('isGrouped')?.value) {
+            <div>
+              <label for="endDate" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.endDate') }}</label>
+              <input type="date" id="endDate" formControlName="endDate" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100"
+                     [class.ring-red-500]="activityForm.get('endDate')?.invalid && activityForm.get('endDate')?.touched">
+               @if (activityForm.get('endDate')?.hasError('required') && activityForm.get('endDate')?.touched) {
+                <p class="mt-1 text-sm text-red-600">{{ t()('registerActivity.errors.endDateRequired') }}</p>
+              }
+            </div>
+          }
+
+           <div>
+            <label for="color" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.activityColor') }}</label>
+            <input type="color" id="color" formControlName="color" class="mt-1 block w-full h-10 rounded-md border-0 p-1 cursor-pointer shadow-sm ring-1 ring-inset ring-gray-300 disabled:bg-gray-100">
+          </div>
+
+          <div class="md:col-span-2 flex items-center pt-2">
+              <input id="allDay" type="checkbox" formControlName="allDay" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:bg-gray-100">
+              <label for="allDay" class="ml-3 block text-sm font-medium text-gray-700">{{ t()('registerActivity.allDay') }}</label>
+          </div>
+          
+          <div>
+            <label for="startTime" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.startTime') }}</label>
+            <input type="time" id="startTime" formControlName="startTime" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100"
+                   [class.ring-red-500]="activityForm.get('startTime')?.invalid && activityForm.get('startTime')?.touched">
+            @if (activityForm.get('startTime')?.invalid && activityForm.get('startTime')?.touched) {
+              <p class="mt-1 text-sm text-red-600">{{ t()('registerActivity.errors.startTimeRequired') }}</p>
+            }
+          </div>
+          <div>
+            <label for="endTime" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.endTime') }}</label>
+            <input type="time" id="endTime" formControlName="endTime" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100"
+                   [class.ring-red-500]="activityForm.get('endTime')?.invalid && activityForm.get('endTime')?.touched">
+            @if (activityForm.get('endTime')?.invalid && activityForm.get('endTime')?.touched) {
+              <p class="mt-1 text-sm text-red-600">{{ t()('registerActivity.errors.endTimeRequired') }}</p>
+            }
+          </div>
+
+          <!-- Capacity Mode -->
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.capacityControl') }}</label>
+            <div class="mt-2 flex rounded-md shadow-sm">
+                <button type="button" (click)="activityForm.get('capacityMode')?.setValue('activity')"
+                        class="relative inline-flex items-center rounded-l-md px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-10 transition-colors disabled:opacity-50"
+                        [class.bg-indigo-600]="activityForm.get('capacityMode')?.value === 'activity'"
+                        [class.text-white]="activityForm.get('capacityMode')?.value === 'activity'"
+                        [class.bg-white]="activityForm.get('capacityMode')?.value !== 'activity'"
+                        [class.text-gray-900]="activityForm.get('capacityMode')?.value !== 'activity'"
+                        [class.hover:bg-gray-50]="activityForm.get('capacityMode')?.value !== 'activity'"
+                        [disabled]="activityForm.get('capacityMode')?.disabled">
+                  {{ t()('registerActivity.overallCapacity') }}
+                </button>
+                <button type="button" (click)="activityForm.get('capacityMode')?.setValue('skill')"
+                        class="relative -ml-px inline-flex items-center rounded-r-md px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-10 transition-colors disabled:opacity-50"
+                        [class.bg-indigo-600]="activityForm.get('capacityMode')?.value === 'skill'"
+                        [class.text-white]="activityForm.get('capacityMode')?.value === 'skill'"
+                        [class.bg-white]="activityForm.get('capacityMode')?.value !== 'skill'"
+                        [class.text-gray-900]="activityForm.get('capacityMode')?.value !== 'skill'"
+                        [class.hover:bg-gray-50]="activityForm.get('capacityMode')?.value !== 'skill'"
+                        [disabled]="activityForm.get('capacityMode')?.disabled">
+                  {{ t()('registerActivity.capacityBySkill') }}
+                </button>
+            </div>
+          </div>
+          
+          @if (activityForm.get('capacityMode')?.value === 'activity') {
+            <div>
+              <label for="capacity" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.capacity') }}</label>
+              <input type="number" id="capacity" formControlName="capacity" min="1" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                     [class.ring-red-500]="activityForm.get('capacity')?.invalid && activityForm.get('capacity')?.touched">
+              @if (activityForm.get('capacity')?.hasError('required') && activityForm.get('capacity')?.touched) {
+                <p class="mt-1 text-sm text-red-600">{{ t()('registerActivity.errors.capacityRequired') }}</p>
+              }
+              @if (activityForm.get('capacity')?.hasError('min')) {
+                @let item = editingGroup() || editingSlot();
+                @if (item) {
+                  <p class="mt-1 text-sm text-red-600">
+                    {{ t()('registerActivity.capacityError', { count: isGroup(item) ? item.filledCapacity : getFilledCapacity(item) }) }}
+                  </p>
+                }
+              }
+            </div>
+          }
+
+          <!-- Required Skills Selection -->
+          <div class="md:col-span-2">
+            <fieldset>
+              <legend class="text-sm font-medium text-gray-700">{{ t()('registerActivity.requiredSkills') }}</legend>
+              <div class="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-2">
+                @if (activityForm.get('companyId')?.value) {
+                  @for(skill of availableSkillsForActivity(); track skill.id) {
+                    <div class="relative flex items-start">
+                      <div class="flex h-5 items-center">
+                        <input [id]="'skill-' + skill.id" type="checkbox"
+                              [checked]="isSkillSelected(skill.name)"
+                              (change)="onSkillChange($event, skill.name)"
+                              [disabled]="isSkillLocked(skill.name)"
+                              class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:bg-gray-200 disabled:cursor-not-allowed">
+                      </div>
+                      <div class="ml-3 text-sm">
+                        <label [for]="'skill-' + skill.id" class="font-medium text-gray-700">{{ skill.name }}</label>
+                      </div>
+                    </div>
+                  } @empty {
+                    <p class="text-sm text-gray-500 col-span-full">{{ t()('manageSkills.noSkills') }}</p>
+                  }
+                } @else {
+                  <p class="text-sm text-gray-500 col-span-full">{{ t()('manageSkills.selectCompany') }}</p>
+                }
+              </div>
+            </fieldset>
+             @if (activityForm.get('capacitiesBySkill')?.invalid && activityForm.get('capacitiesBySkill')?.touched) {
+              <p class="mt-2 text-sm text-red-600">{{ t()('registerActivity.errors.skillsRequiredForCapacity') }}</p>
+            }
+          </div>
+
+          <!-- Capacity By Skill Inputs -->
+          @if (activityForm.get('capacityMode')?.value === 'skill') {
+            <div class="md:col-span-2 p-4 border border-gray-200 rounded-md bg-gray-50" formGroupName="capacitiesBySkill">
+              <h4 class="text-sm font-medium text-gray-900">{{ t()('registerActivity.capacityBySkill') }}</h4>
+              <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-4">
+                @if (activityForm.get('requiredSkills')?.value?.length! > 0) {
+                  @for (skill of availableSkillsForActivity(); track skill.id) {
+                    <div>
+                      @if (isSkillSelected(skill.name)) {
+                        <label [for]="'capacity-' + skill.name" class="block text-xs font-medium text-gray-700">{{ skill.name }}</label>
+                        <input type="number" [id]="'capacity-' + skill.name" [formControlName]="skill.name" min="1"
+                               [disabled]="isSkillLocked(skill.name)"
+                               class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 disabled:bg-gray-100 disabled:cursor-not-allowed">
+                      }
+                    </div>
+                  }
+                } @else {
+                  <p class="text-sm text-gray-500 col-span-full">{{ t()('registerActivity.selectSkillsForCapacity') }}</p>
+                }
+              </div>
+            </div>
+          }
+        </div>
+        @if (activityForm.hasError('timeRange') && (activityForm.get('startTime')?.touched || activityForm.get('endTime')?.touched)) {
+          <div class="text-red-600 text-sm">
+            {{ t()('registerActivity.timeRangeError') }}
+          </div>
+        }
+         @if (activityForm.hasError('dateRange') && (activityForm.get('startDate')?.touched || activityForm.get('endDate')?.touched)) {
+          <div class="text-red-600 text-sm">
+            {{ t()('registerActivity.dateRangeError') }}
+          </div>
+        }
+        @if (activityForm.hasError('activityConflict') && activityForm.dirty) {
+          <div class="text-red-600 text-sm">
+            {{ t()('registerActivity.activityConflictError') }}
+          </div>
+        }
+        <div class="flex justify-end space-x-2">
+          @if (editingSlot() || editingGroup()) {
+            <button type="button" (click)="cancelEdit()" class="px-6 py-2 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-colors">
+              {{ t()('registerActivity.buttons.cancel') }}
+            </button>
+          }
+          <button type="submit" class="px-6 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300">
+            {{ submitButtonText() }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Activities List -->
+  <div>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold tracking-tight text-gray-900">{{ t()('registerActivity.existingActivities') }} ({{ listItems().length }})</h2>
+      <button (click)="isFilterPanelVisible.set(!isFilterPanelVisible())" type="button" class="relative inline-flex items-center gap-x-2 rounded-md px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors"
+        [class.bg-white]="!areFiltersActive()"
+        [class.hover:bg-gray-50]="!areFiltersActive()"
+        [class.bg-indigo-100]="areFiltersActive()"
+        [class.hover:bg-indigo-200]="areFiltersActive()">
+        @if (areFiltersActive()) {
+          <span class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-indigo-600 ring-2 ring-white"></span>
+        }
+        <svg class="h-5 w-5" [class.text-indigo-600]="areFiltersActive()" [class.text-gray-400]="!areFiltersActive()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.59L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clip-rule="evenodd" />
+        </svg>
+        @if (isFilterPanelVisible()) {
+          <span>{{ t()('registerActivity.filters.hide') }}</span>
+        } @else {
+          <span>{{ t()('registerActivity.filters.show') }}</span>
+        }
+      </button>
+    </div>
+
+    <!-- Filter Panel -->
+    @if (isFilterPanelVisible()) {
+      <div class="mb-4 p-4 bg-gray-50 shadow rounded-lg border border-gray-200">
+        <form [formGroup]="filterForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+          <div>
+            <label for="filter-title" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.filters.title') }}</label>
+            <input type="text" id="filter-title" formControlName="title" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+          </div>
+          <div>
+            <label for="filter-company-activity" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.filters.company') }}</label>
+            <select id="filter-company-activity" formControlName="companyId" class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+              <option value="all">{{ t()('registerActivity.filters.allCompanies') }}</option>
+              @for(company of availableCompanies(); track company.id) {
+                <option [value]="company.id">{{ company.name }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label for="filter-location" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.filters.location') }}</label>
+            <input type="text" id="filter-location" formControlName="location" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+          </div>
+           <div>
+            <label for="filter-skill-activity" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.filters.skill') }}</label>
+            <select id="filter-skill-activity" formControlName="skill" class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+              <option value="all">{{ t()('registerActivity.filters.allSkills') }}</option>
+              @for(skill of allSkillsForFilter(); track skill.id) {
+                <option [value]="skill.name">{{ skill.name }}</option>
+              }
+            </select>
+          </div>
+           <div>
+            <label for="filter-start-date" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.filters.startDate') }}</label>
+            <input type="date" id="filter-start-date" formControlName="startDate" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+          </div>
+          <div>
+            <label for="filter-end-date" class="block text-sm font-medium text-gray-700">{{ t()('registerActivity.filters.endDate') }}</label>
+            <input type="date" id="filter-end-date" formControlName="endDate" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+          </div>
+          <div class="lg:col-span-2">
+            <button (click)="resetFilters()" type="button" class="w-full sm:w-auto inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">{{ t()('registerActivity.filters.reset') }}</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    @if (listItems().length > 0) {
+      <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+        <ul role="list" class="divide-y divide-gray-200">
+          @for (item of listItems(); track isGroup(item) ? item.job.id : item.id) {
+            <li class="px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between hover:bg-gray-50">
+              @if (isGroup(item)) {
+                <div class="flex-grow">
+                  <p class="font-semibold text-gray-800 flex items-center flex-wrap gap-x-2">
+                    <span>{{ item.job.title }}</span>
+                    <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">{{ t()('registerActivity.isGrouped') }}</span>
+                    <span class="text-sm text-indigo-600 font-medium">{{ item.job.companyName }}</span>
+                  </p>
+                  <div class="mt-2 text-xs text-gray-500 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                      <p class="sm:col-span-2">
+                        <strong>{{ t()('registerActivity.period') }}:</strong>
+                        <span class="font-medium text-gray-700">{{ t()('registerActivity.dateRange', { start: (item.startDate | date:'mediumDate':undefined:translationService.currentLanguage()), end: (item.endDate | date:'mediumDate':undefined:translationService.currentLanguage()) }) }}</span>
+                      </p>
+                      <p>
+                        <strong>{{ t()('calendar.time') }}:</strong> <span class="font-medium text-gray-700">{{ item.slots[0].startTime | date:'shortTime':undefined:translationService.currentLanguage() }} - {{ item.slots[0].endTime | date:'shortTime':undefined:translationService.currentLanguage() }}</span>
+                      </p>
+                      <p>
+                        <strong>{{ t()('registerActivity.capacityLabel') }}:</strong> <span class="font-medium text-gray-700">{{ item.slots[0].capacity - item.filledCapacity }} / {{ item.slots[0].capacity }}</span>
+                      </p>
+                      <p>
+                          <strong>{{ t()('registerActivity.location') }}:</strong> <span class="font-medium text-gray-700">{{ item.job.location }}</span>
+                      </p>
+                      @if (item.slots[0].requiredSkills && item.slots[0].requiredSkills.length > 0) {
+                        <p class="sm:col-span-2">
+                          <strong>{{ t()('registerActivity.skillsLabel') }}:</strong> <span class="font-medium text-gray-700">{{ item.slots[0].requiredSkills.join(', ') }}</span>
+                        </p>
+                      }
+                  </div>
+                </div>
+              } @else {
+                @let slot = item;
+                <div class="flex-grow">
+                  <p class="font-semibold text-gray-800 flex items-center flex-wrap gap-x-2">
+                    <span>{{ slot.job.title }}</span>
+                    <span class="text-sm text-indigo-600 font-medium">{{ slot.job.companyName }}</span>
+                  </p>
+                  <div class="mt-2 text-xs text-gray-500 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                      <p>
+                        <strong>{{ t()('calendar.date') }}:</strong> <span class="font-medium text-gray-700">{{ slot.startTime | date:'mediumDate':undefined:translationService.currentLanguage() }}</span>
+                      </p>
+                      <p>
+                        <strong>{{ t()('calendar.time') }}:</strong> <span class="font-medium text-gray-700">{{ slot.startTime | date:'shortTime':undefined:translationService.currentLanguage() }} - {{ slot.endTime | date:'shortTime':undefined:translationService.currentLanguage() }}</span>
+                      </p>
+                      <p>
+                        <strong>{{ t()('registerActivity.capacityLabel') }}:</strong> <span class="font-medium text-gray-700">{{ slot.capacity - getFilledCapacity(slot) }} / {{ slot.capacity }}</span>
+                      </p>
+                      <p>
+                          <strong>{{ t()('registerActivity.location') }}:</strong> <span class="font-medium text-gray-700">{{ slot.job.location }}</span>
+                      </p>
+                      @if (slot.requiredSkills && slot.requiredSkills.length > 0) {
+                        <p class="sm:col-span-2">
+                          <strong>{{ t()('registerActivity.skillsLabel') }}:</strong> <span class="font-medium text-gray-700">{{ slot.requiredSkills.join(', ') }}</span>
+                        </p>
+                      }
+                  </div>
+                </div>
+              }
+              <div class="mt-4 sm:mt-0 flex-shrink-0 flex items-center space-x-2">
+                <button (click)="editActivity(item)" class="px-3 py-1 text-sm rounded-md text-indigo-600 bg-indigo-100 hover:bg-indigo-200 font-semibold transition-colors">
+                  {{ t()('manageCompanies.editButton') }}
+                </button>
+                <button (click)="duplicateActivity(item)" class="px-3 py-1 text-sm rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 font-semibold transition-colors">
+                  {{ t()('registerActivity.buttons.duplicate') }}
+                </button>
+                <button (click)="deleteActivity(item)" class="px-3 py-1 text-sm rounded-md text-white bg-red-600 hover:bg-red-700 font-semibold transition-colors">
+                  {{ t()('manageCompanies.deleteButton') }}
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      </div>
+    } @else {
+      <div class="mt-4 p-6 bg-white shadow-lg rounded-lg">
+        <p class="text-gray-600 text-center">{{ t()('registerActivity.noActivitiesFound') }}</p>
+      </div>
+    }
+  </div>
+</div>
+
+@if (activityToDelete(); as item) {
+  @if (isGroup(item)) {
+    <app-confirmation-modal
+      [message]="t()('confirmationModal.messages.removeActivityGroup', { name: item.job.title, count: item.slots.length })"
+      (confirm)="confirmDeleteActivity()"
+      (cancel)="activityToDelete.set(null)">
+    </app-confirmation-modal>
+  } @else {
+    <app-confirmation-modal
+      [message]="t()('confirmationModal.messages.removeActivity', { name: item.job.title })"
+      (confirm)="confirmDeleteActivity()"
+      (cancel)="activityToDelete.set(null)">
+    </app-confirmation-modal>
+  }
+}
