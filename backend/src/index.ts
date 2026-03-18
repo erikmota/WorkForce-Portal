@@ -32,7 +32,11 @@ try {
   }
   
   prisma = new PrismaClient({
-    datasourceUrl: dbUrl
+    datasources: {
+      db: {
+        url: dbUrl
+      }
+    }
   });
   
   // Connect in the background
