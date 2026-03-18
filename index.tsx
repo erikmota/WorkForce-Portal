@@ -1,4 +1,3 @@
-import '@angular/compiler';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideZonelessChangeDetection, APP_INITIALIZER } from '@angular/core';
 import { provideRouter, withHashLocation } from '@angular/router';

@@ -16,7 +16,32 @@ const port = 3000;
 app.use(express.json());
 
 // Initialize Prisma
-const prisma = new PrismaClient();
+let prisma: PrismaClient;
+try {
+  const dbUrl = process.env['DATABASE_URL'];
+  prisma = new PrismaClient({
+    datasources: {
+      db: {
+        url: dbUrl
+      }
+    }
+  } as any);
+} catch (err: any) {
+  console.error('[Server] ❌ Prisma initialization failed:', err.message);
+  // Create a dummy proxy to prevent crashes in route handlers
+  prisma = new Proxy({} as PrismaClient, {
+    get: (target, prop) => {
+      const msg = `Prisma client failed to initialize. Original error: ${err.message}`;
+      if (typeof prop === 'string' && prop.startsWith('$')) {
+        return () => Promise.reject(new Error(msg));
+      }
+      // Return a proxy for model access (e.g., prisma.company.findMany)
+      return new Proxy({}, {
+        get: () => () => Promise.reject(new Error(msg))
+      });
+    }
+  });
+}
 
 // Resolve the correct path to the browser assets
 const clientAppDir = path.resolve(process.cwd(), 'dist/browser/browser');
