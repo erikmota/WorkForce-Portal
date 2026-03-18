@@ -78,6 +78,28 @@ app.get('/api/jobs', async (req, res) => {
   }
 });
 
+app.get('/api/skills', async (req, res) => {
+  try {
+    const skills = await prisma.skill.findMany({
+      include: { company: true }
+    });
+    res.json(skills);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch skills' });
+  }
+});
+
+app.get('/api/timeslots', async (req, res) => {
+  try {
+    const slots = await prisma.timeSlot.findMany({
+      include: { job: { include: { company: true } } }
+    });
+    res.json(slots);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch timeslots' });
+  }
+});
+
 app.get('/api/registrations', async (req, res) => {
   try {
     const registrations = await prisma.registration.findMany({
