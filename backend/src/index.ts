@@ -1,4 +1,4 @@
-// VERSION 1.5 - CLOUD RUN ULTIMATE RESILIENCE
+// VERSION 2.4 - PRISMA 7 COMPATIBILITY & CLOUD RUN RESILIENCE
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -14,7 +14,7 @@ try {
 const app = express();
 // 1. START LISTENING IMMEDIATELY
 // This MUST happen before any database connection attempts to satisfy Cloud Run
-const port = parseInt(process.env.PORT || '8080', 10);
+const port = parseInt(process.env['PORT'] || '8080', 10);
 const server = app.listen(port, '0.0.0.0', () => {
   console.log(`[Backend] 🚀 Server is UP and listening on 0.0.0.0:${port}`);
 });
@@ -23,7 +23,7 @@ const server = app.listen(port, '0.0.0.0', () => {
 // We use a try-catch to prevent a crash if the client is missing or misconfigured
 let prisma: PrismaClient;
 try {
-  const dbUrl = process.env.DATABASE_URL;
+  const dbUrl = process.env['DATABASE_URL'];
   if (!dbUrl) {
     console.warn('[Backend] ⚠️ DATABASE_URL is NOT defined! Database features will fail.');
   } else {
@@ -31,13 +31,7 @@ try {
     console.log('[Backend] ℹ️ DATABASE_URL found:', maskedUrl.substring(0, 30) + '...');
   }
   
-  prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: dbUrl
-      }
-    }
-  });
+  prisma = new PrismaClient();
   
   // Connect in the background
   prisma.$connect()
@@ -50,7 +44,13 @@ try {
   console.error('[Backend] ❌ Prisma initialization failed:', err.message);
   // We create a dummy object to prevent crashes in route handlers
   prisma = new Proxy({} as PrismaClient, {
-    get: () => { throw new Error('Prisma client failed to initialize: ' + err.message); }
+    get: (target, prop) => {
+      const msg = `Prisma client failed to initialize. Check DATABASE_URL and ensure 'prisma generate' was run. Original error: ${err.message}`;
+      if (typeof prop === 'string' && prop.startsWith('$')) {
+        return () => Promise.reject(new Error(msg));
+      }
+      throw new Error(msg);
+    }
   });
 }
 
