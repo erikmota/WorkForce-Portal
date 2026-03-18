@@ -12,7 +12,7 @@ try {
 }
 
 const app = express();
-const port = process.env.PORT || '8080';
+const port = parseInt(process.env.PORT || '8080', 10);
 
 // 1. START LISTENING IMMEDIATELY
 // This is the most important part for Cloud Run health checks
@@ -99,12 +99,4 @@ app.get('/api/audit-logs', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch audit logs' });
   }
-});
-
-// Health check
-app.get('/api/health', (req, res) => res.json({ status: 'ok', message: 'Server is running' }));
-
-// Root route
-app.get('/', (req, res) => {
-  res.status(200).send('Workforce Backend API is active.');
 });
