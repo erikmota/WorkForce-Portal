@@ -38,8 +38,8 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./
 
-# The application listens on port 3000 internally
-EXPOSE 3000
+# Cloud Run listens on port 8080 by default
+EXPOSE 8080
 
 # Use a start script that handles migrations (optional but recommended)
 CMD ["node", "dist/server.js"]
