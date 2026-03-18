@@ -91,7 +91,7 @@ gcloud run deploy workforce-backend \
   --platform managed \
   --region [REGION] \
   --allow-unauthenticated \
-  --set-env-vars DATABASE_URL="mysql://user:password@sistemabd.mysql.dbaas.com.br:3306/database"
+  --set-env-vars DATABASE_URL="mysql://sistemabd:Abc123@@sistemabd.mysql.dbaas.com.br:3306/sistemabd"
 ```
 
 ## Frontend Configuration
