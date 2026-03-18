@@ -25,13 +25,15 @@ let prisma: PrismaClient;
 try {
   const dbUrl = process.env['DATABASE_URL'];
   if (!dbUrl) {
-    console.warn('[Backend] ⚠️ DATABASE_URL is NOT defined! Database features will fail.');
-  } else {
-    const maskedUrl = dbUrl.replace(/:(\/\/.*):(.*)@/, ': $1:****@');
-    console.log('[Backend] ℹ️ DATABASE_URL found:', maskedUrl.substring(0, 30) + '...');
+    throw new Error('DATABASE_URL environment variable is MISSING. Please set it in AI Studio Settings -> Environment Variables.');
   }
   
-  prisma = new PrismaClient();
+  const maskedUrl = dbUrl.replace(/:(\/\/.*):(.*)@/, ': $1:****@');
+  console.log('[Backend] ℹ️ DATABASE_URL found:', maskedUrl.substring(0, 30) + '...');
+  
+  prisma = new PrismaClient({
+    datasourceUrl: dbUrl
+  });
   
   // Connect in the background
   prisma.$connect()
