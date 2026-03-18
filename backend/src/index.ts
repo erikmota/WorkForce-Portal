@@ -12,35 +12,41 @@ try {
 }
 
 const app = express();
-const port = parseInt(process.env.PORT || '8080', 10);
-
 // 1. START LISTENING IMMEDIATELY
-// This is the most important part for Cloud Run health checks
+// This MUST happen before any database connection attempts to satisfy Cloud Run
+const port = parseInt(process.env.PORT || '8080', 10);
 const server = app.listen(port, '0.0.0.0', () => {
-  console.log(`[Backend] ✅ Server is UP and listening on 0.0.0.0:${port}`);
+  console.log(`[Backend] 🚀 Server is UP and listening on 0.0.0.0:${port}`);
 });
 
 // 2. INITIALIZE PRISMA
-// We initialize it directly to avoid "not initialized" errors in routes
-const dbUrl = process.env.DATABASE_URL;
-
-if (!dbUrl) {
-  console.error('[Backend] ❌ CRITICAL: DATABASE_URL is NOT defined!');
-} else {
-  // Log a masked version for debugging
-  const maskedUrl = dbUrl.replace(/:(\/\/.*):(.*)@/, ': $1:****@');
-  console.log('[Backend] ℹ️ DATABASE_URL found:', maskedUrl.substring(0, 30) + '...');
-}
-
-const prisma = new PrismaClient();
-
-// Connect in the background
-prisma.$connect()
-  .then(() => console.log('[Backend] 🗄️ Database connected successfully'))
-  .catch((err) => {
-    console.error('[Backend] ❌ Database connection error:', err.message);
-    if (err.code) console.error('[Backend] ❌ Prisma Error Code:', err.code);
+// We use a try-catch to prevent a crash if the client is missing or misconfigured
+let prisma: PrismaClient;
+try {
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) {
+    console.warn('[Backend] ⚠️ DATABASE_URL is NOT defined! Database features will fail.');
+  } else {
+    const maskedUrl = dbUrl.replace(/:(\/\/.*):(.*)@/, ': $1:****@');
+    console.log('[Backend] ℹ️ DATABASE_URL found:', maskedUrl.substring(0, 30) + '...');
+  }
+  
+  prisma = new PrismaClient();
+  
+  // Connect in the background
+  prisma.$connect()
+    .then(() => console.log('[Backend] 🗄️ Database connected successfully'))
+    .catch((err) => {
+      console.error('[Backend] ❌ Database connection error:', err.message);
+      if (err.code) console.error('[Backend] ❌ Prisma Error Code:', err.code);
+    });
+} catch (err: any) {
+  console.error('[Backend] ❌ Prisma initialization failed:', err.message);
+  // We create a dummy object to prevent crashes in route handlers
+  prisma = new Proxy({} as PrismaClient, {
+    get: () => { throw new Error('Prisma client failed to initialize: ' + err.message); }
   });
+}
 
 app.use(cors());
 app.use(express.json());
