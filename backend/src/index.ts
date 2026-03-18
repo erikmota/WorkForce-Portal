@@ -20,28 +20,27 @@ const server = app.listen(port, '0.0.0.0', () => {
   console.log(`[Backend] ✅ Server is UP and listening on 0.0.0.0:${port}`);
 });
 
-// 2. INITIALIZE PRISMA LAZILY
-let prisma: PrismaClient;
+// 2. INITIALIZE PRISMA
+// We initialize it directly to avoid "not initialized" errors in routes
 const dbUrl = process.env.DATABASE_URL;
 
 if (!dbUrl) {
-  console.error('[Backend] ❌ CRITICAL: DATABASE_URL is not defined in environment variables!');
+  console.error('[Backend] ❌ CRITICAL: DATABASE_URL is NOT defined!');
 } else {
-  console.log('[Backend] ℹ️ DATABASE_URL is defined (starts with:', dbUrl.substring(0, 10) + '...)');
+  // Log a masked version for debugging
+  const maskedUrl = dbUrl.replace(/:(\/\/.*):(.*)@/, ': $1:****@');
+  console.log('[Backend] ℹ️ DATABASE_URL found:', maskedUrl.substring(0, 30) + '...');
 }
 
-try {
-  prisma = new PrismaClient();
-  prisma.$connect()
-    .then(() => console.log('[Backend] 🗄️ Database connected'))
-    .catch((err) => {
-      console.error('[Backend] ❌ Database connection error:', err.message);
-      // Log more details if available
-      if (err.code) console.error('[Backend] ❌ Error code:', err.code);
-    });
-} catch (err) {
-  console.error('[Backend] ❌ Prisma initialization failed:', err);
-}
+const prisma = new PrismaClient();
+
+// Connect in the background
+prisma.$connect()
+  .then(() => console.log('[Backend] 🗄️ Database connected successfully'))
+  .catch((err) => {
+    console.error('[Backend] ❌ Database connection error:', err.message);
+    if (err.code) console.error('[Backend] ❌ Prisma Error Code:', err.code);
+  });
 
 app.use(cors());
 app.use(express.json());
@@ -59,7 +58,6 @@ app.get('/', (req, res) => {
 // API Routes
 app.get('/api/companies', async (req, res) => {
   try {
-    if (!prisma) throw new Error('Prisma client not initialized');
     const companies = await prisma.company.findMany({
       include: { skills: true }
     });
@@ -76,7 +74,6 @@ app.get('/api/companies', async (req, res) => {
 
 app.get('/api/users', async (req, res) => {
   try {
-    if (!prisma) throw new Error('Prisma client not initialized');
     const users = await prisma.user.findMany({
       include: { companies: true }
     });
@@ -93,7 +90,6 @@ app.get('/api/users', async (req, res) => {
 
 app.get('/api/jobs', async (req, res) => {
   try {
-    if (!prisma) throw new Error('Prisma client not initialized');
     const jobs = await prisma.job.findMany({
       include: { timeSlots: true, company: true }
     });
@@ -110,7 +106,6 @@ app.get('/api/jobs', async (req, res) => {
 
 app.get('/api/skills', async (req, res) => {
   try {
-    if (!prisma) throw new Error('Prisma client not initialized');
     const skills = await prisma.skill.findMany({
       include: { company: true }
     });
@@ -127,7 +122,6 @@ app.get('/api/skills', async (req, res) => {
 
 app.get('/api/timeslots', async (req, res) => {
   try {
-    if (!prisma) throw new Error('Prisma client not initialized');
     const slots = await prisma.timeSlot.findMany({
       include: { job: { include: { company: true } } }
     });
@@ -144,7 +138,6 @@ app.get('/api/timeslots', async (req, res) => {
 
 app.get('/api/registrations', async (req, res) => {
   try {
-    if (!prisma) throw new Error('Prisma client not initialized');
     const registrations = await prisma.registration.findMany({
       include: { user: true, job: true, slot: true }
     });
@@ -161,7 +154,6 @@ app.get('/api/registrations', async (req, res) => {
 
 app.get('/api/audit-logs', async (req, res) => {
   try {
-    if (!prisma) throw new Error('Prisma client not initialized');
     const logs = await prisma.auditLog.findMany({
       include: { user: true },
       orderBy: { timestamp: 'desc' }
