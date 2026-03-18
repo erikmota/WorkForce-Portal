@@ -31,7 +31,9 @@ try {
     console.log('[Backend] ℹ️ DATABASE_URL found:', maskedUrl.substring(0, 30) + '...');
   }
   
-  prisma = new PrismaClient();
+  prisma = new PrismaClient({
+    datasourceUrl: dbUrl
+  });
   
   // Connect in the background
   prisma.$connect()
