@@ -1,37 +1,45 @@
-# Use Node.js base image
-FROM node:20-slim
+# --- Build Stage ---
+FROM node:22-slim AS builder
 
-# Install openssl for Prisma
-RUN apt-get update -y && apt-get install -y openssl libssl-dev
+# Install OpenSSL (Required for Prisma engines)
+RUN apt-get update -y && apt-get install -y openssl
 
-# Set working directory
 WORKDIR /app
 
-# Copy backend package files
-COPY backend/package*.json ./
+COPY package*.json ./
+COPY prisma ./prisma/
+COPY prisma.config.ts ./
 
-# Install dependencies
+# Install all dependencies
 RUN npm install
 
-# Copy backend Prisma files
-COPY backend/prisma ./prisma/
-COPY backend/prisma.config.ts ./
-
-# Generate Prisma client
+# Generate the Prisma Client
+# This creates the artifacts in node_modules/.prisma
 RUN npx prisma generate
 
-# Copy the rest of the backend code
-COPY backend/ .
-
-# Build the TypeScript application
+# Copy the rest of the code and build (if using TS)
+COPY . .
 RUN npm run build
 
-# Expose the port
-EXPOSE 8080
+# --- Production Stage ---
+FROM node:22-slim AS runner
 
-# Set environment variables
-ENV PORT=8080
+RUN apt-get update -y && apt-get install -y openssl --no-install-recommends && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Set production environment
 ENV NODE_ENV=production
 
-# Start the application
-CMD ["node", "dist/index.js"]
+# Copy only the necessary files from builder
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./
+
+# The application listens on port 3000 internally
+EXPOSE 3000
+
+# Use a start script that handles migrations (optional but recommended)
+CMD ["node", "dist/server.js"]
