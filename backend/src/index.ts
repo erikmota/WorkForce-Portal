@@ -1,15 +1,8 @@
-// VERSION 2.4 - PRISMA 7 COMPATIBILITY & CLOUD RUN RESILIENCE
+// VERSION 2.5 - PRISMA 7 COMPATIBILITY & CLOUD RUN RESILIENCE
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
-
-// Load env vars but don't crash if missing
-try {
-  dotenv.config();
-} catch (e) {
-  console.log('[Backend] No .env file found, using system env vars');
-}
 
 const app = express();
 // 1. START LISTENING IMMEDIATELY
@@ -31,7 +24,14 @@ try {
   const maskedUrl = dbUrl.replace(/:(\/\/.*):(.*)@/, ': $1:****@');
   console.log('[Backend] ℹ️ DATABASE_URL found:', maskedUrl.substring(0, 30) + '...');
   
-  prisma = new PrismaClient();
+  // In Prisma 7, we pass the URL explicitly to the constructor
+  prisma = new PrismaClient({
+    datasources: {
+      db: {
+        url: dbUrl
+      }
+    }
+  } as any);
   
   // Connect in the background
   prisma.$connect()
