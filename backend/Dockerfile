@@ -1,46 +1,58 @@
 # --- Build Stage ---
 FROM node:22-slim AS builder
 
-# Install OpenSSL (Required for Prisma engines)
+# Instala o OpenSSL (Necessário para a engine do Prisma)
 RUN apt-get update -y && apt-get install -y openssl
 
 WORKDIR /app
 
+# Copia os arquivos de dependência e configuração do Prisma
 COPY package*.json ./
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
 
-# Install all dependencies
+# Instala TODAS as dependências (incluindo devDependencies necessárias para o build)
 RUN npm install
 
-# Generate the Prisma Client
-# This creates the artifacts in node_modules/.prisma
+# Gera o Prisma Client para o build (tipagem do TypeScript)
 RUN npx prisma generate
 
-# Copy the rest of the code and build (if using TS)
+# Copia o restante do código e faz o build
 COPY . .
 RUN npm run build
+
 
 # --- Production Stage ---
 FROM node:22-slim AS runner
 
-RUN apt-get update -y && apt-get install -y openssl --no-install-recommends && rm -rf /var/lib/apt/lists/*
+# Instala o OpenSSL e os certificados CA (Crucial para conexões seguras de DB na nuvem)
+RUN apt-get update -y && apt-get install -y openssl ca-certificates --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Set production environment
+# Configura as variáveis de ambiente de produção
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Copy only the necessary files from builder
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./
+# Copia os arquivos necessários para instalar as dependências de produção
+COPY package*.json ./
+COPY prisma ./prisma/
+COPY prisma.config.ts ./
 
-# Cloud Run listens on port 8080 by default
+# 1. Instala APENAS as dependências de produção (deixa a imagem mais leve e evita conflitos)
+RUN npm install --omit=dev
+
+# 2. GERA O PRISMA CLIENT NA PRODUÇÃO
+# Isso garante que a engine do Prisma e o Client estejam perfeitamente 
+# sincronizados com a pasta node_modules limpa do ambiente final.
+RUN npx prisma generate
+
+# 3. Copia apenas a pasta compilada (dist) do estágio de build
+COPY --from=builder /app/dist ./dist
+
+# Cloud Run escuta na porta 8080 por padrão
 EXPOSE 8080
 
-# Use a start script that handles migrations (optional but recommended)
+# Inicia a aplicação
 CMD ["node", "dist/index.js"]
+# Updated for GitHub sync
