@@ -6,10 +6,10 @@
   "scripts": {
     "start": "node dist/server.js",
     "build:frontend": "ng build",
-    "build:backend": "tsc -p tsconfig.server.json",
+    "build:backend": "npx prisma generate && tsc -p tsconfig.server.json",
     "build": "npm run build:frontend && npm run build:backend",
     "serve": "ng serve",
-    "dev": "ng serve --port 3000 --host 0.0.0.0 --disable-host-check",
+    "dev": "node sync-txt.js & ng serve --port 3000 --host 0.0.0.0 --disable-host-check",
     "cap:sync": "npm run build:frontend && npx cap sync",
     "lint": "tsc --noEmit -p tsconfig.app.json",
     "cap:android": "npx cap run android",
