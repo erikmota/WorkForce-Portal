@@ -26,9 +26,9 @@ filesToWatch.forEach(({ txt, orig }) => {
   if (fs.existsSync(txtPath)) {
     console.log(`Watching ${txt} -> ${orig}`);
     
-    // Watch the .txt file for changes
-    fs.watch(txtPath, (eventType) => {
-      if (eventType === 'change') {
+    // Watch the .txt file for changes using watchFile (polling) for better reliability
+    fs.watchFile(txtPath, { interval: 1000 }, (curr, prev) => {
+      if (curr.mtime !== prev.mtime) {
         try {
           const content = fs.readFileSync(txtPath, 'utf8');
           fs.writeFileSync(origPath, content, 'utf8');
