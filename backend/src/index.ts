@@ -1,10 +1,11 @@
-// VERSION 2.5 - PRISMA 7 COMPATIBILITY & CLOUD RUN RESILIENCE
+// VERSION 2.5 - PRISMA COMPATIBILITY & CLOUD RUN RESILIENCE
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 
 const app = express();
+
 // 1. START LISTENING IMMEDIATELY
 // This MUST happen before any database connection attempts to satisfy Cloud Run
 const port = parseInt(process.env['PORT'] || '8080', 10);
@@ -18,20 +19,14 @@ let prisma: PrismaClient;
 try {
   const dbUrl = process.env['DATABASE_URL'];
   if (!dbUrl) {
-    throw new Error('DATABASE_URL environment variable is MISSING. Please set it in AI Studio Settings -> Environment Variables.');
+    throw new Error('DATABASE_URL environment variable is MISSING. Please set it in Cloud Run Environment Variables.');
   }
   
   const maskedUrl = dbUrl.replace(/:(\/\/.*):(.*)@/, ': $1:****@');
   console.log('[Backend] ℹ️ DATABASE_URL found:', maskedUrl.substring(0, 30) + '...');
   
-  // In Prisma 7, we pass the URL explicitly to the constructor
-  prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: dbUrl
-      }
-    }
-  } as any);
+  // SOLUÇÃO: Instancie sem argumentos. O Prisma lê process.env.DATABASE_URL automaticamente.
+  prisma = new PrismaClient();
   
   // Connect in the background
   prisma.$connect()
