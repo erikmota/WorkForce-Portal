@@ -156,9 +156,18 @@ export class AuthService {
       bankDetails: {}
     };
 
-    this.dataPersistence._users.update(users => [...users, newUser]);
-    this.emailService.sendInvitationEmail(newUser, tempPassword).subscribe();
-    return of(newUser);
+    return this.http.post<User>(`${this.apiUrl}/users`, newUser).pipe(
+      tap((createdUser) => {
+        this.dataPersistence._users.update(users => [...users, createdUser]);
+        this.emailService.sendInvitationEmail(createdUser, tempPassword).subscribe();
+      }),
+      catchError(err => {
+        console.warn('API for inviteUser failed, operating on local session data.', err);
+        this.dataPersistence._users.update(users => [...users, newUser]);
+        this.emailService.sendInvitationEmail(newUser, tempPassword).subscribe();
+        return of(newUser);
+      })
+    );
   }
 
   completeOnboarding(userId: string, updateData: Partial<User>): Observable<void> {

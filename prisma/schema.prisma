@@ -68,8 +68,11 @@ model User {
   isGlobalAdmin     Boolean        @default(false)
   dailyRate         Float?
   profilePictureUrl String?
+  phone             String?
   address           Json?
   bankDetails       Json?
+  notifications     Json?
+  needsOnboarding   Boolean        @default(true)
   companies         UserCompany[]
   registrations     Registration[]
   auditLogs         AuditLog[]
