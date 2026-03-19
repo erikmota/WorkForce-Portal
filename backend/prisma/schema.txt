@@ -1,0 +1,134 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id                      String   @id @default(uuid())
+  name                    String
+  address                 String?
+  city                    String?
+  state                   String?
+  phone1                  String?
+  email                   String?
+  contactName             String?
+  contractType            String?
+  contractValue           Float?
+  bannerImageUrl          String?
+  defaultStartTime        String?
+  defaultEndTime          String?
+  maxMonthlyHiresPerUser  Int?
+  skills                  Skill[]
+  jobs                    Job[]
+  users                   UserCompany[]
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+model Skill {
+  id        String   @id @default(uuid())
+  name      String
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Job {
+  id                           String         @id @default(uuid())
+  title                        String
+  description                  String         @db.Text
+  location                     String
+  companyId                    String
+  company                      Company        @relation(fields: [companyId], references: [id])
+  isGrouped                    Boolean        @default(false)
+  hideTitleFromUser            Boolean        @default(false)
+  offersTransportation         Boolean        @default(false)
+  transportationDepartureLocation String?
+  transportationDepartureTime  String?
+  timeSlots                    TimeSlot[]
+  registrations                Registration[]
+  createdAt                    DateTime       @default(now())
+  updatedAt                    DateTime       @updatedAt
+}
+
+model User {
+  id                String         @id @default(uuid())
+  username          String         @unique
+  name              String
+  password          String
+  isGlobalAdmin     Boolean        @default(false)
+  dailyRate         Float?
+  profilePictureUrl String?
+  address           Json?
+  bankDetails       Json?
+  companies         UserCompany[]
+  registrations     Registration[]
+  auditLogs         AuditLog[]
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model UserCompany {
+  userId    String
+  companyId String
+  role      String   @default("user")
+  status    String   @default("active")
+  skills    Json?    // Array of skill names
+  user      User     @relation(fields: [userId], references: [id])
+  company   Company  @relation(fields: [companyId], references: [id])
+
+  @@id([userId, companyId])
+}
+
+model TimeSlot {
+  id             String         @id @default(uuid())
+  startTime      DateTime
+  endTime        DateTime
+  jobId          String
+  job            Job            @relation(fields: [jobId], references: [id])
+  capacity       Int
+  requiredSkills Json?          // Array of skill names
+  color          String?
+  capacityMode   String         @default("total") // "total" or "skill"
+  capacityBySkill Json?         // Map of skill -> capacity
+  registrations  Registration[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Registration {
+  id                  String   @id @default(uuid())
+  slotId              String
+  jobId               String
+  userId              String
+  status              String   @default("pending")
+  comment             String?  @db.Text
+  needsTransportation Boolean  @default(false)
+  transportationNotes String?  @db.Text
+  registeredWithSkill String?
+  slot                TimeSlot @relation(fields: [slotId], references: [id])
+  job                 Job      @relation(fields: [jobId], references: [id])
+  user                User     @relation(fields: [userId], references: [id])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([userId, slotId])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  details   String?  @db.Text
+  timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}

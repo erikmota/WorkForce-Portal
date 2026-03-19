@@ -12,7 +12,9 @@ const filesToWatch = [
   { txt: '.dockerignore.txt', orig: '.dockerignore' },
   { txt: 'backend/Dockerfile.txt', orig: 'backend/Dockerfile' },
   { txt: 'backend/README.txt', orig: 'backend/README.md' },
-  { txt: 'backend/.dockerignore.txt', orig: 'backend/.dockerignore' }
+  { txt: 'backend/.dockerignore.txt', orig: 'backend/.dockerignore' },
+  { txt: 'prisma/schema.txt', orig: 'prisma/schema.prisma' },
+  { txt: 'backend/prisma/schema.txt', orig: 'backend/prisma/schema.prisma' }
 ];
 
 console.log('Starting file sync watcher for .txt copies...');
