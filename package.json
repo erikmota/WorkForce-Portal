@@ -23,10 +23,12 @@
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
     "@google/genai": "^1.43.0",
+    "@prisma/adapter-mariadb": "^7.5.0",
     "@prisma/client": "^7.4.2",
     "@supabase/supabase-js": "^2.99.0",
     "dotenv": "^17.3.1",
     "express": "^4.19.2",
+    "mariadb": "^3.5.2",
     "prisma": "^7.4.2",
     "rxjs": "^7.8.2",
     "uuid": "^10.0.0"

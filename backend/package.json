@@ -11,10 +11,12 @@
     "prisma:migrate": "prisma migrate deploy"
   },
   "dependencies": {
+    "@prisma/adapter-mariadb": "^7.5.0",
     "@prisma/client": "^7.4.2",
     "cors": "^2.8.5",
     "dotenv": "^17.3.1",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "mariadb": "^3.5.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

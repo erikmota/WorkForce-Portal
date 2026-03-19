@@ -34,4 +34,5 @@ ENV PORT=8080
 ENV NODE_ENV=production
 
 # Start the application
+# Updated for GitHub sync
 CMD ["node", "dist/index.js"]

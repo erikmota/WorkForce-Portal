@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import * as fs from 'fs';
 import { PrismaClient } from '@prisma/client';
+import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -19,13 +20,13 @@ app.use(express.json());
 let prisma: PrismaClient;
 try {
   const dbUrl = process.env['DATABASE_URL'];
-  prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: dbUrl
-      }
-    }
-  } as any);
+  if (!dbUrl) {
+    throw new Error('DATABASE_URL environment variable is MISSING.');
+  }
+  const mariadbUrl = dbUrl.replace(/^mysql:\/\//, 'mariadb://');
+  const adapter = new PrismaMariaDb(mariadbUrl);
+  
+  prisma = new PrismaClient({ adapter });
 } catch (err: any) {
   console.error('[Server] ❌ Prisma initialization failed:', err.message);
   // Create a dummy proxy to prevent crashes in route handlers

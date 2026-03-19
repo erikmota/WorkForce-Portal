@@ -54,4 +54,5 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 8080
 
 # Inicia a aplicação
+# Updated for GitHub sync
 CMD ["node", "dist/index.js"]

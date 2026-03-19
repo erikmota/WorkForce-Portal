@@ -3,6 +3,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
+import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 
 const app = express();
 
@@ -25,8 +26,11 @@ try {
   const maskedUrl = dbUrl.replace(/:(\/\/.*):(.*)@/, ': $1:****@');
   console.log('[Backend] ℹ️ DATABASE_URL found:', maskedUrl.substring(0, 30) + '...');
   
-  // SOLUÇÃO: Instancie sem argumentos. O Prisma lê process.env.DATABASE_URL automaticamente.
-  prisma = new PrismaClient();
+  const mariadbUrl = dbUrl.replace(/^mysql:\/\//, 'mariadb://');
+  const adapter = new PrismaMariaDb(mariadbUrl);
+  
+  // SOLUÇÃO: Instancie com o adapter MariaDB
+  prisma = new PrismaClient({ adapter });
   
   // Connect in the background
   prisma.$connect()
